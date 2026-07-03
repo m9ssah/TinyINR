@@ -1,7 +1,7 @@
 #include "fourier_embedding_raw.h"
 
-void fourier_embedding_raw(const float *input, float *output, int N, int D,
-                           int F) {
+void rawFourierEmbedding(const float *input, float *output, int N, int D,
+                         int F) {
   int output_dim = D + 2 * D * F;
 
   for (int i = 0; i < N; i++) {
