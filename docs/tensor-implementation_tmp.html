@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>tensor-implementation.md</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+html,footer,header{
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Custom MD PDF CSS
+ */
+html,footer,header{
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+
+ }
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+<link rel="stylesheet" href="file:///Users/jemimasilaen/Documents/TinyINR/R%3A%5C2.Travail%5C1.Enseignement%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css"><link rel="stylesheet" href="file:///Users/jemimasilaen/Documents/TinyINR/D%3A%5Crdaros%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css">
+</head>
+
+<body>
+    <h1 id="tensor-implementation-notes">Tensor Implementation Notes</h1>
+<p>This document explains the current TinyINR <code>Tensor</code> implementation in:</p>
+<ul>
+<li><code>include/tensor.h</code></li>
+<li><code>src/tensor.cpp</code></li>
+</ul>
+<p>This tensor is a small CPU-first float32 tensor that gives the rest of TinyINR a reliable foundation for coordinates, Fourier embeddings, sampling, and later CUDA kernels.</p>
+<h2 id="what-this-tensor-owns">What This Tensor Owns</h2>
+<p>The <code>Tensor</code> class owns three private fields:</p>
+<pre class="hljs"><code><div><span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">float</span>&gt; data_;
+<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int64_t</span>&gt; shape_;
+<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int64_t</span>&gt; strides_;
+</div></code></pre>
+<h3 id="data"><code>data_</code></h3>
+<p><code>data_</code> is the actual memory buffer.</p>
+<p>It is a flat <code>std::vector&lt;float&gt;</code>, which means all tensor values are stored in one contiguous 1D array. Using <code>std::vector</code> gives safe RAII memory management:</p>
+<ul>
+<li>memory is allocated automatically</li>
+<li>memory is freed automatically</li>
+<li>no manual <code>new</code></li>
+<li>no manual <code>delete</code></li>
+<li>copying a Tensor copies the vector safely</li>
+</ul>
+<p>The first version only supports <code>float</code>, which maps to CPU float32 storage.</p>
+<h3 id="shape"><code>shape_</code></h3>
+<p><code>shape_</code> records the logical dimensions of the tensor.</p>
+<p>Examples:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">x</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;       <span class="hljs-comment">// shape [2, 3]</span>
+<span class="hljs-function">Tensor <span class="hljs-title">coords</span><span class="hljs-params">({<span class="hljs-number">1</span>, <span class="hljs-number">1024</span>, <span class="hljs-number">2</span>})</span></span>; <span class="hljs-comment">// shape [batch, points, coordinate_dim]</span>
+</div></code></pre>
+<p>For TinyINR, the important shared conventions are:</p>
+<pre class="hljs"><code><div>coordinates: [batch_size, num_points, coordinate_dim]
+values:      [batch_size, num_points, value_dim]
+embedding:   [batch_size, num_points, embedding_dim]
+</div></code></pre>
+<p>For one RGB image of size <code>32 x 32</code>:</p>
+<pre class="hljs"><code><div>coordinates: [1, 1024, 2]
+values:      [1, 1024, 3]
+</div></code></pre>
+<h3 id="strides"><code>strides_</code></h3>
+<p><code>strides_</code> explains how to convert multidimensional indices into a flat <code>data_</code> index.</p>
+<p>TinyINR uses contiguous row-major layout. In row-major layout, the last dimension is adjacent in memory.</p>
+<p>For shape <code>[2, 3]</code>, the tensor looks like:</p>
+<pre class="hljs"><code><div>[[a, b, c],
+ [d, e, f]]
+</div></code></pre>
+<p>But <code>data_</code> stores it as:</p>
+<pre class="hljs"><code><div>[a, b, c, d, e, f]
+</div></code></pre>
+<p>The strides are:</p>
+<pre class="hljs"><code><div>shape:   [2, 3]
+strides: [3, 1]
+</div></code></pre>
+<p>The offset formula is:</p>
+<pre class="hljs"><code><div>offset = i * strides[<span class="hljs-number">0</span>] + j * strides[<span class="hljs-number">1</span>];
+</div></code></pre>
+<p>So:</p>
+<pre class="hljs"><code><div>at({0, 0}) -&gt; data_[0]
+at({0, 1}) -&gt; data_[1]
+at({1, 0}) -&gt; data_[3]
+at({1, 2}) -&gt; data_[5]
+</div></code></pre>
+<p>For shape <code>[B, N, D]</code>, strides become:</p>
+<pre class="hljs"><code><div>[N * D, D, 1]
+</div></code></pre>
+<p>That means:</p>
+<pre class="hljs"><code><div>offset = batch * (N * D) + point * D + channel;
+</div></code></pre>
+<p>This is exactly what TinyINR needs for coordinate tensors such as <code>[B, H * W, 2]</code>.</p>
+<h2 id="constructor">Constructor</h2>
+<p>The constructor is:</p>
+<pre class="hljs"><code><div>Tensor::Tensor(<span class="hljs-keyword">const</span> <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int64_t</span>&gt;&amp; shape)
+    : data_(compute_numel(shape), <span class="hljs-number">0.0f</span>),
+      shape_(shape),
+      strides_(compute_strides(shape)) {}
+</div></code></pre>
+<p>It does three things:</p>
+<ol>
+<li>Computes the number of elements from the shape.</li>
+<li>Allocates <code>data_</code> with that many floats, initialized to <code>0.0f</code>.</li>
+<li>Stores <code>shape_</code> and computes <code>strides_</code>.</li>
+</ol>
+<p>Example:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">x</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+</div></code></pre>
+<p>This creates:</p>
+<pre class="hljs"><code><div>shape_:   [2, 3]
+strides_: [3, 1]
+data_:    [0, 0, 0, 0, 0, 0]
+</div></code></pre>
+<h2 id="shape-validation">Shape Validation</h2>
+<p><code>compute_numel</code> validates the shape before allocation.</p>
+<p>Rules:</p>
+<ul>
+<li>shape cannot be empty</li>
+<li>every dimension must be positive</li>
+<li>the total element count must not overflow <code>int64_t</code></li>
+</ul>
+<p>So these are invalid:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">a</span><span class="hljs-params">({})</span></span>;
+<span class="hljs-function">Tensor <span class="hljs-title">b</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">0</span>})</span></span>;
+<span class="hljs-function">Tensor <span class="hljs-title">c</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">-3</span>})</span></span>;
+</div></code></pre>
+<p>This matters because invalid shapes should fail early, before memory layout bugs spread into CoordinateBatch or FourierEmbedding.</p>
+<h2 id="accessing-raw-data">Accessing Raw Data</h2>
+<p>The class exposes:</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">float</span>* <span class="hljs-title">data</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">const</span> <span class="hljs-keyword">float</span>* <span class="hljs-title">data</span><span class="hljs-params">()</span> <span class="hljs-keyword">const</span></span>;
+</div></code></pre>
+<p>These return pointers to the underlying contiguous buffer.</p>
+<p>Example:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">x</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+x.data()[<span class="hljs-number">0</span>] = <span class="hljs-number">1.0f</span>;
+x.data()[<span class="hljs-number">5</span>] = <span class="hljs-number">6.0f</span>;
+</div></code></pre>
+<p>Use <code>data()</code> when you need fast direct access or integration with low-level code. Use <code>at(...)</code> when you want safer multidimensional indexing.</p>
+<h2 id="safe-indexing">Safe Indexing</h2>
+<p>The public indexing methods are:</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">float</span>&amp; <span class="hljs-title">at</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int64_t</span>&gt;&amp; indices)</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">const</span> <span class="hljs-keyword">float</span>&amp; <span class="hljs-title">at</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int64_t</span>&gt;&amp; indices)</span> <span class="hljs-keyword">const</span></span>;
+</div></code></pre>
+<p>They call the private helper:</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">int64_t</span> <span class="hljs-title">offset</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int64_t</span>&gt;&amp; indices)</span> <span class="hljs-keyword">const</span></span>;
+</div></code></pre>
+<p><code>offset</code> checks:</p>
+<ul>
+<li>the number of indices matches the number of dimensions</li>
+<li>each index is inside bounds</li>
+</ul>
+<p>Then it computes:</p>
+<pre class="hljs"><code><div>flat_index += indices[i] * strides_[i];
+</div></code></pre>
+<p>Example:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">x</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+x.at({<span class="hljs-number">1</span>, <span class="hljs-number">2</span>}) = <span class="hljs-number">5.0f</span>;
+</div></code></pre>
+<p>For shape <code>[2, 3]</code> and strides <code>[3, 1]</code>:</p>
+<pre class="hljs"><code><div>offset = 1 * 3 + 2 * 1 = 5
+</div></code></pre>
+<p>So this writes:</p>
+<pre class="hljs"><code><div>data_[<span class="hljs-number">5</span>] = <span class="hljs-number">5.0f</span>;
+</div></code></pre>
+<p>Invalid indexing throws an exception instead of silently returning bad memory.</p>
+<h2 id="zeros"><code>zeros</code></h2>
+<p><code>zeros</code> is simple:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">Tensor::zeros</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int64_t</span>&gt;&amp; shape)</span> </span>{
+    <span class="hljs-keyword">return</span> Tensor(shape);
+}
+</div></code></pre>
+<p>The constructor already zero-initializes the buffer, so <code>zeros</code> is just a named helper.</p>
+<p>Example:</p>
+<pre class="hljs"><code><div>Tensor x = Tensor::zeros({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>});
+</div></code></pre>
+<h2 id="randn"><code>randn</code></h2>
+<p><code>randn</code> creates a tensor filled with normally distributed random values:</p>
+<pre class="hljs"><code><div>Tensor x = Tensor::randn({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>}, <span class="hljs-number">0.0f</span>, <span class="hljs-number">1.0f</span>);
+</div></code></pre>
+<p>It uses:</p>
+<ul>
+<li><code>std::random_device</code> for a seed</li>
+<li><code>std::mt19937</code> as the generator</li>
+<li><code>std::normal_distribution&lt;float&gt;</code> for samples</li>
+</ul>
+<p><code>stddev</code> must be non-negative.</p>
+<p>This is useful for initializing weights or generating simple test tensors. It is intentionally not deterministic yet. If deterministic tests are needed later, add an overload that accepts a seed.</p>
+<h2 id="reshape"><code>reshape</code></h2>
+<p><code>reshape</code> returns a copy of the tensor with a new shape:</p>
+<pre class="hljs"><code><div>Tensor y = x.reshape({<span class="hljs-number">3</span>, <span class="hljs-number">2</span>});
+</div></code></pre>
+<p>The important rule:</p>
+<pre class="hljs"><code><div>old numel must equal new numel
+</div></code></pre>
+<p>So this is valid:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">x</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>; <span class="hljs-comment">// 6 elements</span>
+Tensor y = x.reshape({<span class="hljs-number">3</span>, <span class="hljs-number">2</span>}); <span class="hljs-comment">// also 6 elements</span>
+</div></code></pre>
+<p>This is invalid:</p>
+<pre class="hljs"><code><div>Tensor z = x.reshape({<span class="hljs-number">4</span>, <span class="hljs-number">2</span>}); <span class="hljs-comment">// 8 elements</span>
+</div></code></pre>
+<p>The current implementation copies data:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">result</span><span class="hljs-params">(new_shape)</span></span>;
+result.data_ = data_;
+<span class="hljs-keyword">return</span> result;
+</div></code></pre>
+<p>This is simpler than a view and safer for the first CPU implementation. Later, a true view would need shared storage, offset metadata, and careful lifetime rules.</p>
+<h2 id="row"><code>row</code></h2>
+<p><code>row</code> returns a copy of one slice along the first dimension.</p>
+<p>Example with a 2D tensor:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">x</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+Tensor r = x.row(<span class="hljs-number">1</span>);
+</div></code></pre>
+<p>If <code>x</code> has shape <code>[2, 3]</code>, then <code>r</code> has shape <code>[3]</code>.</p>
+<p>For a TinyINR coordinate tensor:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">coords</span><span class="hljs-params">({<span class="hljs-number">4</span>, <span class="hljs-number">1024</span>, <span class="hljs-number">2</span>})</span></span>;
+Tensor first_batch = coords.row(<span class="hljs-number">0</span>);
+</div></code></pre>
+<p><code>first_batch</code> has shape:</p>
+<pre class="hljs"><code><div>[1024, 2]
+</div></code></pre>
+<p>This works because the tensor is contiguous row-major. One row along the first dimension occupies a contiguous block in memory.</p>
+<p>The implementation computes:</p>
+<pre class="hljs"><code><div>row_size = result.numel();
+source_start = row_index * row_size;
+</div></code></pre>
+<p>Then it copies from:</p>
+<pre class="hljs"><code><div>data_[source_start] to data_[source_start + row_size]
+</div></code></pre>
+<h2 id="elementwise-operations">Elementwise Operations</h2>
+<p>The current elementwise operations are:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-keyword">const</span> Tensor&amp; other)</span> <span class="hljs-keyword">const</span></span>;
+<span class="hljs-function">Tensor <span class="hljs-title">multiply</span><span class="hljs-params">(<span class="hljs-keyword">const</span> Tensor&amp; other)</span> <span class="hljs-keyword">const</span></span>;
+</div></code></pre>
+<p>Both require exact shape equality.</p>
+<p>Example:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">a</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+<span class="hljs-function">Tensor <span class="hljs-title">b</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+
+Tensor c = a.add(b);
+Tensor d = a.multiply(b);
+</div></code></pre>
+<p>This is valid because both tensors have shape <code>[2, 3]</code>.</p>
+<p>This is invalid:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">a</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+<span class="hljs-function">Tensor <span class="hljs-title">b</span><span class="hljs-params">({<span class="hljs-number">3</span>})</span></span>;
+
+Tensor c = a.add(b);
+</div></code></pre>
+<p>There is no broadcasting yet. That is deliberate. Broadcasting adds useful behavior, but it also adds complexity and more shape rules. The first version stays explicit.</p>
+<h2 id="matrix-multiplication">Matrix Multiplication</h2>
+<p><code>matmul</code> currently supports only 2D matrix multiplication.</p>
+<p>The rule is:</p>
+<pre class="hljs"><code><div>[M, K] @ [K, N] = [M, N]
+</div></code></pre>
+<p>Example:</p>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">a</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+<span class="hljs-function">Tensor <span class="hljs-title">b</span><span class="hljs-params">({<span class="hljs-number">3</span>, <span class="hljs-number">2</span>})</span></span>;
+Tensor c = a.matmul(b);
+</div></code></pre>
+<p><code>c</code> has shape:</p>
+<pre class="hljs"><code><div>[2, 2]
+</div></code></pre>
+<p>The formula is:</p>
+<pre class="hljs"><code><div>c[i, j] = sum over k of a[i, k] * b[k, j]
+</div></code></pre>
+<p>The implementation uses three loops:</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">for</span> i in rows:
+    <span class="hljs-keyword">for</span> j in cols:
+        sum = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">for</span> k in inner:
+            sum += left[i, k] * right[k, j]
+        result[i, j] = sum
+</div></code></pre>
+<p>This is not optimized. That is fine for now. It is a correctness baseline.</p>
+<p>Later, this baseline can be compared against:</p>
+<ul>
+<li>a faster CPU implementation</li>
+<li>a CUDA implementation</li>
+<li>attention kernels</li>
+</ul>
+<h2 id="example-full-basic-flow">Example: Full Basic Flow</h2>
+<pre class="hljs"><code><div><span class="hljs-function">Tensor <span class="hljs-title">x</span><span class="hljs-params">({<span class="hljs-number">2</span>, <span class="hljs-number">3</span>})</span></span>;
+
+x.at({<span class="hljs-number">0</span>, <span class="hljs-number">0</span>}) = <span class="hljs-number">1.0f</span>;
+x.at({<span class="hljs-number">0</span>, <span class="hljs-number">1</span>}) = <span class="hljs-number">2.0f</span>;
+x.at({<span class="hljs-number">0</span>, <span class="hljs-number">2</span>}) = <span class="hljs-number">3.0f</span>;
+x.at({<span class="hljs-number">1</span>, <span class="hljs-number">0</span>}) = <span class="hljs-number">4.0f</span>;
+x.at({<span class="hljs-number">1</span>, <span class="hljs-number">1</span>}) = <span class="hljs-number">5.0f</span>;
+x.at({<span class="hljs-number">1</span>, <span class="hljs-number">2</span>}) = <span class="hljs-number">6.0f</span>;
+
+<span class="hljs-function">Tensor <span class="hljs-title">weights</span><span class="hljs-params">({<span class="hljs-number">3</span>, <span class="hljs-number">2</span>})</span></span>;
+weights.at({<span class="hljs-number">0</span>, <span class="hljs-number">0</span>}) = <span class="hljs-number">7.0f</span>;
+weights.at({<span class="hljs-number">0</span>, <span class="hljs-number">1</span>}) = <span class="hljs-number">8.0f</span>;
+weights.at({<span class="hljs-number">1</span>, <span class="hljs-number">0</span>}) = <span class="hljs-number">9.0f</span>;
+weights.at({<span class="hljs-number">1</span>, <span class="hljs-number">1</span>}) = <span class="hljs-number">10.0f</span>;
+weights.at({<span class="hljs-number">2</span>, <span class="hljs-number">0</span>}) = <span class="hljs-number">11.0f</span>;
+weights.at({<span class="hljs-number">2</span>, <span class="hljs-number">1</span>}) = <span class="hljs-number">12.0f</span>;
+
+Tensor y = x.matmul(weights);
+</div></code></pre>
+<p>The result is:</p>
+<pre class="hljs"><code><div>[[58, 64],
+ [139, 154]]
+</div></code></pre>
+<p>Because:</p>
+<pre class="hljs"><code><div>y[0, 0] = 1*7 + 2*9 + 3*11 = 58
+y[0, 1] = 1*8 + 2*10 + 3*12 = 64
+y[1, 0] = 4*7 + 5*9 + 6*11 = 139
+y[1, 1] = 4*8 + 5*10 + 6*12 = 154
+</div></code></pre>
+<h2 id="how-this-supports-tinyinr-and-inrflow">How This Supports TinyINR And INRFlow</h2>
+<p>The Tensor implementation is the lowest layer of TinyINR.</p>
+<p>It does not perform INRFlow by itself. Instead, it makes the next modules possible:</p>
+<h3 id="coordinatebatch">CoordinateBatch</h3>
+<p><code>CoordinateBatch</code> can store:</p>
+<pre class="hljs"><code><div>coordinates: [B, N, coordinate_dim]
+values:      [B, N, value_dim]
+</div></code></pre>
+<p>For images:</p>
+<pre class="hljs"><code><div>coordinates: [B, H * W, 2]
+values:      [B, H * W, 3]
+</div></code></pre>
+<p>This depends on Tensor having stable shape metadata, safe indexing, and predictable contiguous storage.</p>
+<h3 id="fourierembedding">FourierEmbedding</h3>
+<p><code>FourierEmbedding</code> will read coordinate tensors and produce embedding tensors:</p>
+<pre class="hljs"><code><div>input:  [B, N, coordinate_dim]
+output: [B, N, embedding_dim]
+</div></code></pre>
+<p>It will rely heavily on:</p>
+<ul>
+<li><code>shape()</code></li>
+<li><code>data()</code></li>
+<li><code>at(...)</code></li>
+<li>row-major memory layout</li>
+</ul>
+<h3 id="adaptive-coordinate-sampling">Adaptive Coordinate Sampling</h3>
+<p>Later, TinyINR will sample useful coordinates instead of randomly choosing all points.</p>
+<p>That needs Tensor support for:</p>
+<ul>
+<li>slicing or gathering coordinates</li>
+<li>preserving coordinate-value alignment</li>
+<li>comparing sampled values</li>
+<li>producing smaller coordinate batches</li>
+</ul>
+<p>The current <code>row</code> method is a first small step toward slicing.</p>
+<h3 id="attention-and-flow-matching">Attention And Flow Matching</h3>
+<p>The plan includes latent-to-coordinate attention. Attention relies on matrix multiplication. The current <code>matmul</code> is only a baseline, but it gives a clear reference implementation.</p>
+<p>Future CUDA kernels can be checked against this CPU behavior.</p>
+<h2 id="current-limitations">Current Limitations</h2>
+<p>The implementation intentionally does not include:</p>
+<ul>
+<li>autograd</li>
+<li>CUDA memory</li>
+<li>arbitrary dtypes</li>
+<li>broadcasting</li>
+<li>batched matmul</li>
+<li>true zero-copy views</li>
+<li>slicing beyond <code>row</code></li>
+<li>serialization</li>
+<li>deterministic random seeds</li>
+</ul>
+<p>These are not bugs. They are scope boundaries for the first CPU-first Tensor core.</p>
+<h2 id="good-next-tests">Good Next Tests</h2>
+<p>The repo should eventually add tests for:</p>
+<ol>
+<li>Constructor shape and zero initialization.</li>
+<li><code>numel()</code> for 1D, 2D, and 3D tensors.</li>
+<li><code>strides()</code> for <code>[2, 3]</code> and <code>[B, N, D]</code>.</li>
+<li><code>at(...)</code> reads and writes.</li>
+<li>Out-of-bounds indexing throws.</li>
+<li>Shape mismatch in <code>add</code> throws.</li>
+<li>Shape mismatch in <code>multiply</code> throws.</li>
+<li>Valid <code>reshape</code> preserves data order.</li>
+<li>Invalid <code>reshape</code> throws.</li>
+<li><code>row</code> returns the expected slice.</li>
+<li>2D <code>matmul</code> gives known expected values.</li>
+<li>Invalid <code>matmul</code> shapes throw.</li>
+</ol>
+<h2 id="reading-the-code-in-order">Reading The Code In Order</h2>
+<p>If you are learning the implementation from scratch, read the code in this order:</p>
+<ol>
+<li>Private fields in <code>include/tensor.h</code>.</li>
+<li>Constructor in <code>src/tensor.cpp</code>.</li>
+<li><code>compute_numel</code>.</li>
+<li><code>compute_strides</code>.</li>
+<li><code>offset</code>.</li>
+<li><code>at</code>.</li>
+<li><code>reshape</code> and <code>row</code>.</li>
+<li><code>add</code> and <code>multiply</code>.</li>
+<li><code>matmul</code>.</li>
+<li><code>randn</code>.</li>
+</ol>
+<p>That order builds from memory ownership to layout to math operations.</p>
+
+</body>
+
+</html>

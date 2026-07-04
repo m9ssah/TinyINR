@@ -7,19 +7,9 @@
  * A small CPU-only float32 tensor for TinyINR.
  *
  * Tensor owns a flat std::vector<float> buffer and interprets it with shape and
- * stride metadata. Storage is contiguous and row-major, so the last dimension is
- * adjacent in memory. For example, shape [2, 3] has strides [3, 1] and stores:
+ * stride metadata. Storage is contiguous and row-major.
  *
- *   [[a, b, c],
- *    [d, e, f]]
- *
- * as:
- *
- *   [a, b, c, d, e, f]
- *
- * This class is intentionally narrow: CPU float32 only, no autograd, no GPU
- * memory, and no general broadcasting. It is the stable foundation that
- * CoordinateBatch and FourierEmbedding build on.
+ * 
  */
 class Tensor {
 public:
