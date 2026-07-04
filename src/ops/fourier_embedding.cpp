@@ -2,8 +2,8 @@
  *Tensor Wrapper Version
  */
 
-#include "fourier_embedding.h"
-#include "fourier_embedding_raw.h"
+#include "include/ops/fourier_embedding.h"
+#include "include/ops/fourier_embedding_raw.h"
 
 Tensor FourierEmbedding(const Tensor &input, int num_frequencies) {
   int N = input.shape[0];
