@@ -1,9 +1,9 @@
 #pragma once
 
-#include "tensor.h"
-
 #include <cstdint>
 #include <vector>
+
+#include "tensor.h"
 
 /*
 goals:
