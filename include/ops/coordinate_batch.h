@@ -2,6 +2,9 @@
 
 #include "tensor.h"
 
+#include <cstdint>
+#include <vector>
+
 /*
 goals:
 - image/grid coordinate generator
@@ -25,10 +28,11 @@ public:
   int64_t num_points() const;
   int64_t coord_dim() const;
   int64_t value_dim() const;
-}
+};
 
-CoordinateBatch
-generateCoordinateBatch(const std::vector<int64_t> &image, int64_t height,
-                        int64_t width, int64_t channels);
+CoordinateBatch generateCoordinateBatch(const std::vector<float> &image,
+                                        int64_t height, int64_t width,
+                                        int64_t channels);
 
-CoordinateBatch random_subsample(const CoordinateBatch &batch, int sample_count)
+CoordinateBatch randomSubsample(const CoordinateBatch &batch,
+                                int64_t sample_count);

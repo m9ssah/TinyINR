@@ -1,4 +1,4 @@
-#include "include/ops/fourier_embedding_raw.h"
+#include "ops/fourier_embedding_raw.h"
 
 void rawFourierEmbedding(const float *input, float *output, int N, int D,
                          int F) {
