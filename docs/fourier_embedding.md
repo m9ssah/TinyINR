@@ -1,4 +1,6 @@
 # Fourier Embeddings
+## Goal
+Transform coordinates into richer features
 
 ## Background Information
 - **Implicit Neural Representations (INRs)**: method of parameterizing signals, such as images, 3D shapes, etc, as continuous mathematical functions inside a neural network. Take an input coordinate and output the exact value at that location.
