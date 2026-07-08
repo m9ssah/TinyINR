@@ -30,9 +30,6 @@ export default function Home() {
 
               <h1 className="mb-6 text-5xl font-bold tracking-tight text-primary md:text-7xl">
                 TinyINR <br />
-                <span className="bg-gradient-to-r from-accent to-blue-500 bg-clip-text text-transparent">
-                  Made Visible.
-                </span>
               </h1>
 
               <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-secondary md:text-xl">
