@@ -10,14 +10,22 @@ export interface PostMeta {
 
 export const posts: PostMeta[] = [
   {
+    slug: "what-is-flow-matching",
+    title: "What is Flow Matching?",
+    excerpt: "An intuitive introduction to flow matching",
+    date: "2026-07-08",
+    readTime: "6 min read",
+    tags: ["Flow Matching", "Velocity Fields"],
+    featured: true,
+  },
+  {
     slug: "flow-matching-for-coordinate-data",
     title: "Flow Matching for Coordinate-Value Data",
     excerpt:
       "A geometric introduction to TinyINR: learning flows over irregular coordinates, values, and adaptive latent assignments.",
     date: "2026-07-08",
-    readTime: "8 min read",
+    readTime: "8 min read", 
     tags: ["Flow Matching", "INR"],
-    featured: true,
   },
   {
     slug: "fourier-coordinate-embeddings",
