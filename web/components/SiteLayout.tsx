@@ -21,6 +21,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="flex items-center gap-5 font-mono text-sm text-secondary">
+            <Link href="/articles" className="transition-colors hover:text-primary">
+              Articles
+            </Link>
             <span className="h-4 w-px bg-border" />
             <a
               href="https://github.com/m9ssah/TinyINR"
