@@ -21,12 +21,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="flex items-center gap-5 font-mono text-sm text-secondary">
-            <Link href="/" className="transition-colors hover:text-primary">
+            <Link href="/articles" className="transition-colors hover:text-primary">
               Articles
             </Link>
-            <a href="#about" className="transition-colors hover:text-primary">
-              About
-            </a>
             <span className="h-4 w-px bg-border" />
             <a
               href="https://github.com/m9ssah/TinyINR"
@@ -45,18 +42,6 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
         id="about"
         className="relative z-10 mt-20 border-t border-border/50 bg-background"
       >
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 px-6 py-12 md:flex-row">
-          <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-accent" />
-            <span className="font-mono text-sm text-secondary">
-              (c) 2026 TinyINR Lab
-            </span>
-          </div>
-          <p className="max-w-xl text-center font-mono text-sm text-secondary md:text-right">
-            Building intuition for flow matching, coordinate-value data, and
-            GPU-first generative systems.
-          </p>
-        </div>
       </footer>
     </div>
   );

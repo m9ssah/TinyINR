@@ -5,6 +5,7 @@ import { MathDisclosure } from "@/components/MathDisclosure";
 import { SiteLayout } from "@/components/SiteLayout";
 import { getPost, posts } from "@/data/posts";
 import { FlowMatchingPostBody } from "./flow-matching";
+import { MilestoneOnePostBody } from "./milestone-one";
 
 interface PostPageProps {
   params: Promise<{
@@ -100,6 +101,8 @@ export default async function PostPage({ params }: PostPageProps) {
 
             {slug === "what-is-flow-matching" ? (
               <FlowMatchingPostBody />
+            ) : slug === "milestone-1-tensor-coordinate-fourier" ? (
+              <MilestoneOnePostBody />
             ) : (
               <>
                 <p>
