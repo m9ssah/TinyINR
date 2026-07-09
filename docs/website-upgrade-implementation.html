@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TinyINR Website Upgrade Implementation</title>
+  <style>
+    :root {
+      --background: #0b0d10;
+      --surface: #12161c;
+      --surface-hover: #1f2630;
+      --primary: #e6edf3;
+      --secondary: #9ca3af;
+      --accent: #39d3bb;
+      --border: #2d3748;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--primary);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+      padding-bottom: 28px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      letter-spacing: 0;
+    }
+
+    h2 {
+      border-top: 1px solid var(--border);
+      font-size: 1.55rem;
+      margin-top: 40px;
+      padding-top: 28px;
+    }
+
+    h3 {
+      color: var(--accent);
+      font-size: 1rem;
+      margin-top: 22px;
+    }
+
+    p {
+      color: var(--secondary);
+      margin: 12px 0 0;
+    }
+
+    ul,
+    ol {
+      color: var(--secondary);
+      margin: 12px 0 0;
+      padding-left: 22px;
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    code {
+      background: rgb(57 211 187 / 10%);
+      border-radius: 4px;
+      color: var(--accent);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+      padding: 0.1rem 0.3rem;
+    }
+
+    pre {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+      padding: 16px;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    .lede {
+      color: var(--secondary);
+      font-size: 1.1rem;
+      max-width: 760px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      margin-top: 18px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .label {
+      color: var(--accent);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .callout {
+      background: rgb(57 211 187 / 10%);
+      border: 1px solid rgb(57 211 187 / 30%);
+      border-radius: 8px;
+      margin-top: 20px;
+      padding: 16px 18px;
+    }
+
+    .callout p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="label">Implementation Report</p>
+      <h1>TinyINR Website Upgrade</h1>
+      <p class="lede">
+        This note documents the Next.js website upgrade that ports the provided
+        reference design into the existing TinyINR web app while keeping the App
+        Router architecture.
+      </p>
+    </header>
+
+    <section>
+      <h2>Goal</h2>
+      <p>
+        The goal was to replace the default create-next-app screen with a
+        polished project website inspired by the reference React app. The final
+        result keeps Next.js, uses TinyINR-specific branding, and adds a blog
+        style homepage plus dynamic article pages.
+      </p>
+    </section>
+
+    <section>
+      <h2>Framework Decision</h2>
+      <p>
+        The reference implementation was a Vite app using
+        <code>react-router-dom</code>. The TinyINR project already uses Next.js,
+        so the implementation keeps the Next.js App Router and translates route
+        behavior into file-system routes.
+      </p>
+      <pre><code>web/app/page.tsx
+web/app/post/[slug]/page.tsx</code></pre>
+      <p>
+        Links use <code>next/link</code> instead of React Router. The dynamic
+        post page uses <code>generateStaticParams</code> so all known posts are
+        prerendered.
+      </p>
+    </section>
+
+    <section>
+      <h2>Files Added</h2>
+      <div class="grid">
+        <div class="panel">
+          <h3>Data</h3>
+          <p><code>web/data/posts.ts</code></p>
+          <p>
+            Defines post metadata, slugs, tags, excerpts, and the helper
+            <code>getPost</code>.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Layout</h3>
+          <p><code>web/components/SiteLayout.tsx</code></p>
+          <p>
+            Adds sticky navigation, TinyINR branding, GitHub link, ambient
+            background glow, and footer.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Hero Visual</h3>
+          <p><code>web/components/VectorField.tsx</code></p>
+          <p>
+            Ports the animated canvas vector field into a client component.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Interaction</h3>
+          <p><code>web/components/MathDisclosure.tsx</code></p>
+          <p>
+            Adds an expandable math/details block using Framer Motion.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Animation</h3>
+          <p><code>web/components/MotionReveal.tsx</code></p>
+          <p>
+            Small client wrapper for entrance animations on homepage sections
+            and cards.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Post Route</h3>
+          <p><code>web/app/post/[slug]/page.tsx</code></p>
+          <p>
+            Dynamic static article route with metadata, post header, prose, and
+            TinyINR-specific explanatory content.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Files Updated</h2>
+      <ul>
+        <li>
+          <code>web/app/page.tsx</code> now renders the TinyINR homepage with a
+          vector-field hero, featured article, and latest article grid.
+        </li>
+        <li>
+          <code>web/app/globals.css</code> now defines the dark theme tokens,
+          prose styling, code styling, selection colors, and local font stacks.
+        </li>
+        <li>
+          <code>web/app/layout.tsx</code> now uses TinyINR metadata and avoids
+          runtime Google font fetching so builds work in restricted environments.
+        </li>
+        <li>
+          <code>web/package.json</code> and <code>web/package-lock.json</code>
+          now include <code>lucide-react</code> and <code>framer-motion</code>.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Design Translation</h2>
+      <p>
+        The reference design language was preserved: dark background, teal
+        accents, card-based article previews, animated vector field, mono
+        metadata, and disclosure blocks for mathematical detail.
+      </p>
+      <p>
+        The content was adapted from generic FlowMatch branding into TinyINR:
+        coordinate-value data, Fourier embeddings, Tensor core, CUDA kernels,
+        and flow matching are now first-class concepts in the copy.
+      </p>
+    </section>
+
+    <section>
+      <h2>Next.js Adaptations</h2>
+      <ul>
+        <li>
+          Client-only behavior is isolated to components that need browser APIs:
+          canvas drawing, disclosure state, and Framer Motion animations.
+        </li>
+        <li>
+          Static post data is imported directly from <code>web/data/posts.ts</code>.
+        </li>
+        <li>
+          Dynamic post pages are statically generated with
+          <code>generateStaticParams</code>.
+        </li>
+        <li>
+          The build no longer depends on fetching Google fonts through
+          <code>next/font/google</code>, which avoids network failures.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Verification</h2>
+      <pre><code>npm run lint
+npm run build</code></pre>
+      <p>
+        Lint passed. The production build passed after rerunning outside the
+        sandbox because Turbopack needs to bind an internal processing port.
+      </p>
+      <p>
+        The dev server started at <code>http://localhost:3000</code>. Local HTTP
+        checks confirmed that the homepage and a dynamic post route both return
+        <code>200 OK</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Routes Implemented</h2>
+      <pre><code>/
+/post/flow-matching-for-coordinate-data
+/post/fourier-coordinate-embeddings
+/post/building-the-tensor-core
+/post/first-cuda-coordinate-kernel</code></pre>
+    </section>
+
+    <section>
+      <h2>Notes</h2>
+      <div class="callout">
+        <p>
+          The existing uncommitted deletion of <code>docs/tensor-notes.html</code>
+          was not part of this website implementation. It was left untouched.
+        </p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

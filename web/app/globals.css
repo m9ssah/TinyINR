@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b0d10;
+  --foreground: #e6edf3;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: #12161c;
+  --color-surfaceHover: #1f2630;
+  --color-primary: #e6edf3;
+  --color-secondary: #9ca3af;
+  --color-accent: #39d3bb;
+  --color-accentDark: #2b9e8c;
+  --color-border: #2d3748;
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Geist", "Geist Fallback", Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: rgb(57 211 187 / 30%);
+  color: #39d3bb;
+}
+
+.prose {
+  color: #9ca3af;
+}
+
+.prose p {
+  margin-bottom: 1.5rem;
+  line-height: 1.75;
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  color: #e6edf3;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+}
+
+.prose pre {
+  background: #1f2630;
+  border: 1px solid #2d3748;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.prose code {
+  background: rgb(57 211 187 / 10%);
+  border-radius: 0.25rem;
+  color: #39d3bb;
+  font-family: "Geist Mono", "Geist Mono Fallback", monospace;
+  font-size: 0.875rem;
+  padding: 0.125rem 0.375rem;
+}
+
+.prose pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.prose ul {
+  list-style: disc;
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.prose li + li {
+  margin-top: 0.5rem;
+}
+
+.prose strong,
+.prose em {
+  color: #e6edf3;
 }
