@@ -1,4 +1,5 @@
-import { MathDisclosure } from "@/components/MathDisclosure";
+/* eslint-disable react/no-unescaped-entities */
+
 import { KatexBlock } from "@/components/KatexBlock";
 import { KatexInline } from "@/components/KatexInline";
 
