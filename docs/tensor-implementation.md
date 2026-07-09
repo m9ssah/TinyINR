@@ -5,7 +5,7 @@ This document explains the current TinyINR `Tensor` implementation in:
 - `include/tensor.h`
 - `src/tensor.cpp`
 
-The goal of this Tensor is not to become PyTorch. It is a small CPU-first float32 tensor that gives the rest of TinyINR a reliable foundation for coordinates, Fourier embeddings, sampling, and later CUDA kernels.
+This Tensor is a small CPU-first float32 tensor that gives the rest of TinyINR a reliable foundation for coordinates, Fourier embeddings, sampling, and later CUDA kernels.
 
 ## What This Tensor Owns
 
