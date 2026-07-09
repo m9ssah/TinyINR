@@ -181,7 +181,15 @@ export function FlowMatchingPostBody() {
 
             <p>As wanted.</p>
 
-
+            <h2> Further Readings</h2>
+            <a
+                href="https://ai.meta.com/research/publications/flow-matching-guide-and-code/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-accent underline decoration-accent/40 underline-offset-4 transition-colors hover:decoration-accent"
+            >
+                Flow Matching Guide and Code
+            </a>
             {/* <MathDisclosure title="A simple flow matching view">
                 <p>
                     One useful way to think about the target is a point moving from x to
