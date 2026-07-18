@@ -1,8 +1,8 @@
 #pragma once
 
-#include "tensor.h"
+#include "../tensor.h"
 
-Tensor FourierEmbedding {
+struct FourierEmbedding {
   const Tensor &coords;
   const Tensor &frequencies;
-}
+};
