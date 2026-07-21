@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "tensor.h"
+#include "../tensor.h"
 
 /*
 goals:
