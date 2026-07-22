@@ -36,18 +36,19 @@ static void run_case(const Case& c)
     std::mt19937 rng(123);
     std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
+    // init memory
     for (float& x : input) {
         x = dist(rng);
     }
-
-    cpu_coordinate_embedding(input.data(), cpu_output.data(),
-                             c.B, c.N, c.D, c.F);
-
+    
+    // allocate device memory
     float* d_input = cuda_alloc(input_count);
     float* d_output = cuda_alloc(output_count);
-
+    
+    // host to device
     cuda_h2d(d_input, input.data(), input_count);
 
+    // launch kernel
     int threads = THREADS_PER_BLOCK;
     int blocks = compute_grid_size(input_count, threads);
 
@@ -56,14 +57,19 @@ static void run_case(const Case& c)
     CUDA_CHECK_LAST_ERROR();
     CUDA_CHECK(cudaDeviceSynchronize());
 
+    // device to host
     cuda_d2h(gpu_output.data(), d_output, output_count);
 
+    // cpu parity check
+    cpu_coordinate_embedding(input.data(), cpu_output.data(),
+                             c.B, c.N, c.D, c.F);
     float err = max_abs_error(cpu_output, gpu_output);
     std::cout << "B=" << c.B << " N=" << c.N << " D=" << c.D
               << " F=" << c.F << " max_abs_error=" << err << "\n";
 
     assert(err < 1e-5f);
 
+    // clean up
     CUDA_CHECK(cudaFree(d_input));
     CUDA_CHECK(cudaFree(d_output));
 }
