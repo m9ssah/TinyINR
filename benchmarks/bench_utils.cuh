@@ -74,6 +74,61 @@ struct L2Flusher {
   }
 };
 
+inline float median(std::vector<float> v) {
+  if (v.empty())
+    return 0.0f;
+
+  std::sort(v.begin(), v.end());
+  size_t n = v.size();
+
+  if (n % 2 == 1)
+    return v[n / 2];
+  else
+    return (v[n / 2 - 1] + v[n / 2]) / 2.0f;
+}
+
+// Usage:
+//   CsvWriter csv("benchmarks/results/coordinate_embedding.csv");
+//   csv.write_row("coordinate_embedding", B, N, D, F,
+//                 input_count, output_count,
+//                 cpu_ms, h2d_ms, kernel_ms, d2h_ms,
+//                 e2e_gpu_ms, kernel_speedup, e2e_speedup, trial);
+
+struct CsvWriter {
+  std::ofstream file;
+
+  explicit CsvWriter(const std::string &path) {
+    file.open(path, std::ios::out | std::ios::trunc);
+    if (!file.is_open()) {
+      fprintf(stderr, "[CSV ERROR] Could not open %s for writing\n",
+              path.c_str());
+      exit(EXIT_FAILURE);
+    }
+
+    // file header
+    file << "kernel,B,N,D,F,"
+         << "input_elements,output_elements,"
+         << "cpu_ms,h2d_ms,kernel_ms,d2h_ms,e2e_gpu_ms,"
+         << "kernel_speedup,e2e_speedup,"
+         << "trial\n";
+  }
+
+  void write_row(const std::string &kernel_name, int B, int N, int D, int F,
+                 int input_elements, int output_elements, float cpu_ms,
+                 float h2d_ms, float kernel_ms, float d2h_ms, float e2e_gpu_ms,
+                 float kernel_speedup, float e2e_speedup, int trial) {
+    file << kernel_name << "," << B << "," << N << "," << D << "," << F << ","
+         << input_elements << "," << output_elements << "," << cpu_ms << ","
+         << h2d_ms << "," << kernel_ms << "," << d2h_ms << "," << e2e_gpu_ms
+         << "," << kernel_speedup << "," << e2e_speedup << "," << trial << "\n";
+  }
+
+  ~CsvWriter() {
+    if (file.is_open())
+      file.close();
+  }
+};
+
 inline void cuda_warmup(int warmup_iters = 5) {
   void *dummy = nullptr;
   CUDA_CHECK(cudaMalloc(&dummy, 1024));
