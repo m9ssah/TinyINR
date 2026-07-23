@@ -14,11 +14,17 @@ add_library(kernels STATIC
 target_include_directories(kernels PUBLIC src/kernels)
 
 # tests:
-add_executable(test_coordinate_embedding
-    tests/test_coordinate_embedding.cu
+add_executable(test_fourier_embedding_cuda
+    tests/test_fourier_embedding_cuda.cu
 )
-target_link_libraries(test_coordinate_embedding PRIVATE kernels)
-target_include_directories(test_coordinate_embedding PRIVATE src/kernels)
+target_link_libraries(test_fourier_embedding_cuda PRIVATE kernels)
+target_include_directories(test_fourier_embedding_cuda PRIVATE src/kernels)
+
+add_executable(test_cpu_cuda_parity
+    tests/test_cpu_cuda_parity.cu
+)
+target_link_libraries(test_cpu_cuda_parity PRIVATE kernels)
+target_include_directories(test_cpu_cuda_parity PRIVATE src/kernels)
 
 # benchmark target:
 add_executable(bench_coordinate_embedding
@@ -26,3 +32,9 @@ add_executable(bench_coordinate_embedding
 )
 target_link_libraries(bench_coordinate_embedding PRIVATE kernels)
 target_include_directories(bench_coordinate_embedding PRIVATE src/kernels)
+
+add_executable(benchmark_cpu_embedding
+    benchmarks/benchmark_cpu_embedding.cpp
+)
+target_link_libraries(benchmark_cpu_embedding PRIVATE kernels)
+target_include_directories(benchmark_cpu_embedding PRIVATE src/kernels)
