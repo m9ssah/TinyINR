@@ -29,20 +29,27 @@ static void run_case(const Case& c)
     int input_count = c.B * c.N * c.D;
     int output_count = c.B * c.N * c.D * c.F * 2;
 
+    // allocating host memory 
     std::vector<float> input(input_count);
     std::vector<float> cpu_output(output_count);
     std::vector<float> gpu_output(output_count);
 
+    // deterministic random number generator (so every run gets the same random inputs)
     std::mt19937 rng(123);
+
+    // creates floats between -1.0 and 1.0 (matches the normalized coordinate range)
     std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
     for (float& x : input) {
         x = dist(rng);
     }
 
+    // running cpu version of embedding 
     cpu_coordinate_embedding(input.data(), cpu_output.data(),
                              c.B, c.N, c.D, c.F);
 
+    
+    // gpu memory allocation and kernel setup 
     float* d_input = cuda_alloc(input_count);
     float* d_output = cuda_alloc(output_count);
 
@@ -58,6 +65,7 @@ static void run_case(const Case& c)
 
     cuda_d2h(gpu_output.data(), d_output, output_count);
 
+    // comparing cpu and gpu outputs 
     float err = max_abs_error(cpu_output, gpu_output);
     std::cout << "B=" << c.B << " N=" << c.N << " D=" << c.D
               << " F=" << c.F << " max_abs_error=" << err << "\n";
