@@ -45,7 +45,7 @@ int main() {
   CpuTimer cpu_timer;
 
   // sweep over all combos
-  for (int n = 0; < count_N; n++) {
+  for (int n = 0; n < count_N; n++) {
     for (int f = 0; f < count_F; f++) {
       int N = N_VALUES[n];
       int F = F_VALUES[f];

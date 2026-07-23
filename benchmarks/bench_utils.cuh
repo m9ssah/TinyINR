@@ -11,40 +11,40 @@
 #include "../src/kernels/cuda_utils.cuh"
 
 struct GpuTimer {
-  cudaEvent_t start, stop;
+  cudaEvent_t t_start, t_stop;
 
   GpuTimer() {
-    CUDA_CHECK(cudaEventCreate(&start));
-    CUDA_CHECK(cudaEventCreate(&stop));
+    CUDA_CHECK(cudaEventCreate(&t_start));
+    CUDA_CHECK(cudaEventCreate(&t_stop));
   }
 
   ~GpuTimer() {
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    cudaEventDestroy(t_start);
+    cudaEventDestroy(t_stop);
   }
 
-  void start() { CUDA_CHECK(cudaEventRecord(start)); }
+  void start() { CUDA_CHECK(cudaEventRecord(t_start)); }
 
   void stop() {
-    CUDA_CHECK(cudaEventRecord(stop));
-    CUDA_CHECK(cudaEventSynchronize(stop));
+    CUDA_CHECK(cudaEventRecord(t_stop));
+    CUDA_CHECK(cudaEventSynchronize(t_stop));
   }
 
   float elapsed_ms() const {
     float ms = 0.0f;
-    CUDA_CHECK(cudaEventElapsedTime(&ms, start, stop));
+    CUDA_CHECK(cudaEventElapsedTime(&ms, t_start, t_stop));
     return ms;
   }
 };
 
 struct CpuTimer {
-  std::chrono::steady_clock::time_point start, stop;
+  std::chrono::steady_clock::time_point t_start, t_stop;
 
-  void start() { start = std::chrono::steady_clock::now(); }
-  void stop() { stop = std::chrono::steady_clock::now(); }
+  void start() { t_start = std::chrono::steady_clock::now(); }
+  void stop()  { t_stop  = std::chrono::steady_clock::now(); }
 
   float elapsed_ms() const {
-    return std::chrono::duration<float, std::milli>(stop - start).count();
+    return std::chrono::duration<float, std::milli>(t_stop - t_start).count();
   }
 };
 
