@@ -19,3 +19,10 @@ add_executable(test_coordinate_embedding
 )
 target_link_libraries(test_coordinate_embedding PRIVATE kernels)
 target_include_directories(test_coordinate_embedding PRIVATE src/kernels)
+
+# benchmark target:
+add_executable(bench_coordinate_embedding
+    benchmarks/bench_coordinate_embedding.cu
+)
+target_link_libraries(bench_coordinate_embedding PRIVATE kernels)
+target_include_directories(bench_coordinate_embedding PRIVATE src/kernels)
