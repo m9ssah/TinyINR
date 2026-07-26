@@ -41,7 +41,7 @@ struct CpuTimer {
   std::chrono::steady_clock::time_point t_start, t_stop;
 
   void start() { t_start = std::chrono::steady_clock::now(); }
-  void stop()  { t_stop  = std::chrono::steady_clock::now(); }
+  void stop() { t_stop = std::chrono::steady_clock::now(); }
 
   float elapsed_ms() const {
     return std::chrono::duration<float, std::milli>(t_stop - t_start).count();
@@ -92,7 +92,8 @@ inline float median(std::vector<float> v) {
 //   csv.write_row("coordinate_embedding", B, N, D, F,
 //                 input_count, output_count,
 //                 cpu_ms, h2d_ms, kernel_ms, d2h_ms,
-//                 e2e_gpu_ms, kernel_speedup, e2e_speedup, trial);
+//                 e2e_gpu_ms, kernel_speedup, e2e_speedup,
+//                 max_abs_error, trial);
 
 struct CsvWriter {
   std::ofstream file;
@@ -109,18 +110,20 @@ struct CsvWriter {
     file << "kernel,B,N,D,F,"
          << "input_elements,output_elements,"
          << "cpu_ms,h2d_ms,kernel_ms,d2h_ms,e2e_gpu_ms,"
-         << "kernel_speedup,e2e_speedup,"
+         << "kernel_speedup,e2e_speedup,max_abs_error,"
          << "trial\n";
   }
 
   void write_row(const std::string &kernel_name, int B, int N, int D, int F,
                  int input_elements, int output_elements, float cpu_ms,
                  float h2d_ms, float kernel_ms, float d2h_ms, float e2e_gpu_ms,
-                 float kernel_speedup, float e2e_speedup, int trial) {
+                 float kernel_speedup, float e2e_speedup, float max_abs_error,
+                 int trial) {
     file << kernel_name << "," << B << "," << N << "," << D << "," << F << ","
          << input_elements << "," << output_elements << "," << cpu_ms << ","
          << h2d_ms << "," << kernel_ms << "," << d2h_ms << "," << e2e_gpu_ms
-         << "," << kernel_speedup << "," << e2e_speedup << "," << trial << "\n";
+         << "," << kernel_speedup << "," << e2e_speedup << "," << max_abs_error
+         << "," << trial << "\n";
   }
 
   ~CsvWriter() {
