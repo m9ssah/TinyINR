@@ -19,6 +19,15 @@ export const posts: PostMeta[] = [
     featured: true,
   },
   {
+    slug: "milestone-2-cuda-coordinate-benchmark",
+    title: "Milestone 2: Benchmarking CPU vs. CUDA Coordinate Embedding",
+    excerpt:
+      "Benchmarking TinyINR's first custom CUDA coordinate embedding kernel",
+    date: "2026-07-27",
+    readTime: "7 min read",
+    tags: ["CUDA", "Benchmarking", "Fourier"],
+  },
+  {
     slug: "milestone-1-tensor-coordinate-fourier",
     title: "Milestone 1: Tensor core, Coordinate Batch, and Fourier Embedding",
     excerpt: "What we implemented for Milestone 1",
