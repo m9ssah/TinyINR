@@ -1,6 +1,6 @@
 # TinyINR Model and Loss Contract
 
-This document freezes the Day 1 model and loss design for the first trainable
+This document specifies the model and loss design for the first trainable
 TinyINR baseline. The goal is to make the learning problem unambiguous before
 the training loop, optimizer, sampler, and CUDA integration are implemented.
 
@@ -15,8 +15,6 @@ The MSE path must work first. Do not debug CICFM until the MSE baseline can
 overfit a tiny fixed batch.
 
 ## Naming
-
-Use these names consistently in code, tests, logs, and docs:
 
 | Name | Meaning | Shape |
 | --- | --- | --- |
@@ -89,9 +87,6 @@ SiLU
 Linear(256, output_dim)
 ```
 
-This means "4 layers" refers to four linear layers total, not four hidden
-layers.
-
 Activation choice:
 
 ```text
@@ -100,8 +95,7 @@ output activation = identity
 ```
 
 SiLU is the baseline activation because TinyINR models continuous
-coordinate-to-value functions. ReLU can be added later as an ablation, but it is
-not the main baseline.
+coordinate-to-value functions. ReLU can be added later as an ablation.
 
 SiLU definition:
 
@@ -222,10 +216,6 @@ Use per-point time samples first:
 t shape = [B, N, 1]
 ```
 
-This gives the CICFM objective broad coverage of the path inside each training
-batch. A per-batch time mode can be added later, but it is not the Day 1
-contract.
-
 `t` is concatenated as a scalar feature. Do not implement sinusoidal time
 embedding in the first baseline.
 
@@ -296,18 +286,12 @@ mean_abs_prediction
 mean_abs_target
 ```
 
-## Day 1 Definition of Done
-
-Day 1 is complete when:
-
-1. The Fourier tensor wrapper compiles against the current `Tensor` API.
-2. The model input feature contract is frozen as raw coordinates plus Fourier
-   features.
-3. The baseline architecture is frozen as four linear layers, width 256, SiLU.
-4. MSE mode has exact input, output, target, loss, and gradient semantics.
-5. CICFM mode has exact `z0`, `z1`, `t`, `zt`, target velocity, input, output,
-   and loss semantics.
-6. CUDA alignment is explicitly documented: the current kernel returns only the
-   Fourier-feature portion.
-7. Your partner can implement runtime plumbing without needing to decide model
-   semantics.
+# To Do: 
+- [x] Freeze model and loss contract
+- [] Define MLP forward semantics and MSE target
+- [] Define CICFM Scaffolding 
+- [] Verify MSE training logic and backward math 
+- [] Convert MSE to CICFM (use explicit loss mode)
+- [] Debug model behavior and loss transition 
+- [] Document the final model and loss design 
+ 
