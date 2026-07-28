@@ -2,7 +2,4 @@
 
 #include "../tensor.h"
 
-struct FourierEmbedding {
-  const Tensor &coords;
-  const Tensor &frequencies;
-};
+Tensor fourierEmbedding(const Tensor &input, int num_frequencies);
