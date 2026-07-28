@@ -4,6 +4,9 @@ This document freezes the Day 1 model and loss design for the first trainable
 TinyINR baseline. The goal is to make the learning problem unambiguous before
 the training loop, optimizer, sampler, and CUDA integration are implemented.
 
+Day 2 extends this contract in `docs/mlp_forward_mse_semantics.md`, which
+freezes the MLP forward pass and MSE target semantics.
+
 ## Scope
 
 The first training milestone has two controlled phases:
