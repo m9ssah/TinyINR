@@ -65,6 +65,218 @@ function TimingFlow() {
   );
 }
 
+const benchmarkSpeedups = [
+  {
+    coordinates: "1,024",
+    results: [
+      { frequencies: 4, speedup: 7.21754 },
+      { frequencies: 8, speedup: 10.2635 },
+      { frequencies: 16, speedup: 12.6378 },
+    ],
+  },
+  {
+    coordinates: "16,384",
+    results: [
+      { frequencies: 4, speedup: 11.8262 },
+      { frequencies: 8, speedup: 16.9418 },
+      { frequencies: 16, speedup: 21.3239 },
+    ],
+  },
+  {
+    coordinates: "65,536",
+    results: [
+      { frequencies: 4, speedup: 16.7509 },
+      { frequencies: 8, speedup: 21.2391 },
+      { frequencies: 16, speedup: 17.1991 },
+    ],
+  },
+  {
+    coordinates: "262,144",
+    results: [
+      { frequencies: 4, speedup: 19.3634 },
+      { frequencies: 8, speedup: 23.1688 },
+      { frequencies: 16, speedup: 18.3053 },
+    ],
+  },
+];
+
+const frequencyStyles = {
+  4: { color: "#39d3bb", label: "F = 4" },
+  8: { color: "#f2c14e", label: "F = 8" },
+  16: { color: "#f97068", label: "F = 16" },
+};
+
+function BenchmarkSpeedupPlot() {
+  const chartWidth = 720;
+  const chartHeight = 320;
+  const margin = { top: 26, right: 20, bottom: 62, left: 58 };
+  const plotWidth = chartWidth - margin.left - margin.right;
+  const plotHeight = chartHeight - margin.top - margin.bottom;
+  const yMax = 25;
+  const groupWidth = plotWidth / benchmarkSpeedups.length;
+  const barWidth = 22;
+  const barGap = 8;
+  const yTicks = [0, 5, 10, 15, 20, 25];
+
+  return (
+    <figure className="my-10 rounded-xl border border-border bg-surface p-5">
+      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <figcaption className="font-mono text-xs uppercase tracking-widest text-secondary">
+            End-to-end CUDA speedup
+          </figcaption>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-secondary">
+            CPU time divided by full GPU path time: host-to-device copy, kernel,
+            and device-to-host copy.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {Object.entries(frequencyStyles).map(([frequency, style]) => (
+            <div
+              key={frequency}
+              className="flex items-center gap-2 font-mono text-xs text-secondary"
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: style.color }}
+              />
+              {style.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <svg
+          role="img"
+          aria-labelledby="benchmark-speedup-title benchmark-speedup-description"
+          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+          className="h-auto min-w-[680px]"
+        >
+          <title id="benchmark-speedup-title">
+            End-to-end CUDA speedup by coordinate count and frequency bands
+          </title>
+          <desc id="benchmark-speedup-description">
+            A grouped bar chart showing end-to-end CUDA speedup over CPU for
+            coordinate counts from 1024 to 262144 and frequency band counts of
+            4, 8, and 16.
+          </desc>
+
+          <line
+            x1={margin.left}
+            y1={margin.top}
+            x2={margin.left}
+            y2={margin.top + plotHeight}
+            stroke="#2d3748"
+          />
+          <line
+            x1={margin.left}
+            y1={margin.top + plotHeight}
+            x2={margin.left + plotWidth}
+            y2={margin.top + plotHeight}
+            stroke="#2d3748"
+          />
+
+          {yTicks.map((tick) => {
+            const y = margin.top + plotHeight - (tick / yMax) * plotHeight;
+
+            return (
+              <g key={tick}>
+                <line
+                  x1={margin.left}
+                  y1={y}
+                  x2={margin.left + plotWidth}
+                  y2={y}
+                  stroke="#2d3748"
+                  strokeDasharray={tick === 0 ? undefined : "4 6"}
+                  opacity={tick === 0 ? 1 : 0.55}
+                />
+                <text
+                  x={margin.left - 12}
+                  y={y + 4}
+                  textAnchor="end"
+                  className="fill-secondary font-mono text-[11px]"
+                >
+                  {tick}x
+                </text>
+              </g>
+            );
+          })}
+
+          {benchmarkSpeedups.map((group, groupIndex) => {
+            const groupCenter = margin.left + groupWidth * groupIndex + groupWidth / 2;
+            const totalBarWidth = group.results.length * barWidth + 2 * barGap;
+
+            return (
+              <g key={group.coordinates}>
+                {group.results.map((result, resultIndex) => {
+                  const x =
+                    groupCenter -
+                    totalBarWidth / 2 +
+                    resultIndex * (barWidth + barGap);
+                  const barHeight = (result.speedup / yMax) * plotHeight;
+                  const y = margin.top + plotHeight - barHeight;
+                  const style =
+                    frequencyStyles[
+                      result.frequencies as keyof typeof frequencyStyles
+                    ];
+
+                  return (
+                    <g key={result.frequencies}>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={barWidth}
+                        height={barHeight}
+                        rx="4"
+                        fill={style.color}
+                      />
+                      <text
+                        x={x + barWidth / 2}
+                        y={y - 6}
+                        textAnchor="middle"
+                        className="fill-primary font-mono text-[10px]"
+                      >
+                        {result.speedup.toFixed(1)}x
+                      </text>
+                    </g>
+                  );
+                })}
+                <text
+                  x={groupCenter}
+                  y={margin.top + plotHeight + 28}
+                  textAnchor="middle"
+                  className="fill-secondary font-mono text-xs"
+                >
+                  {group.coordinates}
+                </text>
+              </g>
+            );
+          })}
+
+          <text
+            x={margin.left + plotWidth / 2}
+            y={chartHeight - 8}
+            textAnchor="middle"
+            className="fill-secondary font-mono text-[11px]"
+          >
+            Coordinates
+          </text>
+          <text
+            x={16}
+            y={margin.top + plotHeight / 2}
+            textAnchor="middle"
+            transform={`rotate(-90 16 ${margin.top + plotHeight / 2})`}
+            className="fill-secondary font-mono text-[11px]"
+          >
+            Speedup over CPU
+          </text>
+        </svg>
+      </div>
+    </figure>
+  );
+}
+
 function ResultsTable() {
   const rows = [
     {
@@ -274,6 +486,8 @@ output index = input_index * F * 2 + f * 2 + trig`}</code>
         <Keyword>262,144</Keyword>, each with <Keyword>4</Keyword>,{" "}
         <Keyword>8</Keyword>, and <Keyword>16</Keyword> frequency bands.
       </p>
+
+      <BenchmarkSpeedupPlot />
 
       <ResultsTable />
 

@@ -1,5 +1,11 @@
 #include "ops/fourier_embedding_raw.h"
 
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 void rawFourierEmbedding(const float *input, float *output, int N, int D,
                          int F) {
   int output_dim = D + 2 * D * F;
