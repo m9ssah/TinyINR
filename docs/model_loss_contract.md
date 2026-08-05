@@ -4,6 +4,12 @@ This document specifies the model and loss design for the first trainable
 TinyINR baseline. The goal is to make the learning problem unambiguous before
 the training loop, optimizer, sampler, and CUDA integration are implemented.
 
+Day 2 extends this contract in `docs/mlp_forward_mse_semantics.md`, which
+freezes the MLP forward pass and MSE target semantics.
+
+Day 3 extends this contract in `docs/cicfm_scaffolding.md`, which freezes time
+sampling, interpolation, velocity targets, and CICFM model input assembly.
+
 ## Scope
 
 The first training milestone has two controlled phases:
