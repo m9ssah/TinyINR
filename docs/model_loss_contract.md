@@ -10,6 +10,9 @@ freezes the MLP forward pass and MSE target semantics.
 Day 3 extends this contract in `docs/cicfm_scaffolding.md`, which freezes time
 sampling, interpolation, velocity targets, and CICFM model input assembly.
 
+Day 4 extends this contract in `docs/mse_backward_verification.md`, which
+freezes MSE training-logic checks and manual backward math for the baseline MLP.
+
 ## Scope
 
 The first training milestone has two controlled phases:
@@ -292,12 +295,12 @@ mean_abs_prediction
 mean_abs_target
 ```
 
-# To Do: 
+# To Do:
 - [x] Freeze model and loss contract
-- [] Define MLP forward semantics and MSE target
-- [] Define CICFM Scaffolding 
-- [] Verify MSE training logic and backward math 
-- [] Convert MSE to CICFM (use explicit loss mode)
-- [] Debug model behavior and loss transition 
-- [] Document the final model and loss design 
+- [x] Define MLP forward semantics and MSE target
+- [x] Define CICFM Scaffolding
+- [x] Verify MSE training logic and backward math
+- [ ] Convert MSE to CICFM (use explicit loss mode)
+- [ ] Debug model behavior and loss transition
+- [ ] Document the final model and loss design
  
