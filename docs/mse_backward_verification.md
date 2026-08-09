@@ -1,16 +1,5 @@
 # Day 4: Verify MSE Training Logic and Backward Math
 
-This document freezes the Day 4 verification contract for the MSE baseline. It
-builds on:
-
-- `docs/model_loss_contract.md`
-- `docs/mlp_forward_mse_semantics.md`
-- `docs/cicfm_scaffolding.md`
-
-Day 4 is still MSE-only. CICFM tensors are already specified, but they should
-not be used to debug backward propagation. The model must first pass MSE
-gradient checks and overfit a tiny deterministic batch.
-
 ## Goal
 
 Verify that the direct coordinate-to-value baseline has correct training math:
