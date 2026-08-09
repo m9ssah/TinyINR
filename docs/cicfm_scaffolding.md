@@ -1,12 +1,6 @@
 # Day 3: CICFM Scaffolding
 
-This document freezes the Day 3 CICFM scaffolding contract for TinyINR. It
-builds on `docs/model_loss_contract.md` and
-`docs/mlp_forward_mse_semantics.md`.
-
-Day 3 does not replace the MSE baseline. The MSE path remains the first
-trainable target. CICFM scaffolding defines the tensors and math needed for the
-controlled Day 5 conversion from direct value prediction to velocity prediction.
+CICFM scaffolding defines the tensors and math needed for the conversion from direct value prediction to velocity prediction.
 
 ## Goal
 
@@ -88,8 +82,7 @@ z0 ~ Uniform(0, 1)
 ```
 
 Use `Uniform(0, 1)` for the first implementation because image targets are
-expected to live in `[0, 1]`. A Gaussian source can be added later as an
-experiment, but it is not the Day 3 contract.
+expected to live in `[0, 1]`. 
 
 Required shape:
 
