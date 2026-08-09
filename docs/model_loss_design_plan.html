@@ -288,6 +288,11 @@
             <td><a href="./loss_transition_debugging.md">loss_transition_debugging.md</a></td>
             <td>Defines deterministic probes, debug logging, finite-value gates, and loss-transition triage.</td>
           </tr>
+          <tr>
+            <td>Day 7</td>
+            <td><a href="./final_model_loss_design.md">final_model_loss_design.md</a></td>
+            <td>Consolidates the final design and defines the coding plan for model/loss implementation.</td>
+          </tr>
         </tbody>
       </table>
 
@@ -399,8 +404,10 @@ Linear(256, C)</code></pre>
         <h3><span class="pill">Day 7</span>Document Final Design</h3>
         <ul>
           <li>Document final MSE and CICFM tensor contracts.</li>
-          <li>Document overfit and gradient-check results.</li>
-          <li>Document known limitations and CUDA alignment work.</li>
+          <li>Freeze the final four-layer SiLU MLP architecture.</li>
+          <li>Define the coding PR order for model math, loss math, CICFM assembly, backward math, training, debugging, benchmarks, and CUDA alignment.</li>
+          <li>Document the required tests for MSE loss, SiLU, linear backward, finite differences, overfit, CICFM assembly, and loss-target dispatch.</li>
+          <li>Document benchmark fields and CUDA input-contract alignment.</li>
         </ul>
       </section>
 

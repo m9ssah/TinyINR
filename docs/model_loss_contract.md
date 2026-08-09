@@ -21,6 +21,10 @@ Day 6 extends this contract in `docs/loss_transition_debugging.md`, which
 freezes the deterministic probes, logging, finite-value checks, and triage rules
 used to debug the MSE-to-CICFM transition.
 
+Day 7 closes this contract in `docs/final_model_loss_design.md`, which
+consolidates the final MSE/CICFM design and defines the coding plan for model
+math, loss math, CICFM assembly, tests, benchmarks, and CUDA alignment.
+
 ## Scope
 
 The first training milestone has two controlled phases:
@@ -310,5 +314,5 @@ mean_abs_target
 - [x] Verify MSE training logic and backward math
 - [x] Convert MSE to CICFM (use explicit loss mode)
 - [x] Debug model behavior and loss transition
-- [ ] Document the final model and loss design
+- [x] Document the final model and loss design
  

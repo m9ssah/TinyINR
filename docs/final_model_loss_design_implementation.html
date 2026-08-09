@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Day 7 Final Model/Loss Design and Coding Plan</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --soft: #eef6f6;
+        --text: #172033;
+        --muted: #637083;
+        --border: #d8e1eb;
+        --accent: #0f766e;
+        --accent-soft: #ccfbf1;
+        --warn: #92400e;
+        --warn-soft: #fef3c7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.58;
+        margin: 0;
+      }
+
+      main {
+        margin: 0 auto;
+        max-width: 1120px;
+        padding: 44px 24px 64px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      h2 {
+        border-top: 1px solid var(--border);
+        font-size: 24px;
+        margin-top: 38px;
+        padding-top: 26px;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin-top: 22px;
+      }
+
+      p {
+        margin: 12px 0;
+      }
+
+      ul,
+      ol {
+        margin: 12px 0 0;
+        padding-left: 24px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      code,
+      pre {
+        background: var(--soft);
+        border-radius: 7px;
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      code {
+        font-size: 0.92em;
+        padding: 2px 5px;
+      }
+
+      pre {
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        padding: 14px 16px;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin-top: 14px;
+        width: 100%;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 12px 14px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--soft);
+      }
+
+      .hero,
+      .card,
+      .step {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .hero {
+        padding: 28px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 18px;
+        margin-top: 12px;
+        max-width: 850px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .card,
+      .step {
+        padding: 18px;
+      }
+
+      .label {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .value {
+        font-size: 26px;
+        font-weight: 760;
+        margin-top: 8px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .callout {
+        background: var(--accent-soft);
+        border: 1px solid #99f6e4;
+        border-radius: 10px;
+        margin-top: 18px;
+        padding: 16px 18px;
+      }
+
+      .warning {
+        background: var(--warn-soft);
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        color: var(--warn);
+        margin-top: 18px;
+        padding: 16px 18px;
+      }
+
+      .step {
+        margin-top: 16px;
+      }
+
+      .pill {
+        background: var(--accent);
+        border-radius: 999px;
+        color: white;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 750;
+        margin-right: 8px;
+        padding: 4px 9px;
+      }
+
+      @media (max-width: 780px) {
+        main {
+          padding: 28px 16px 48px;
+        }
+
+        h1 {
+          font-size: 30px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>Day 7 Final Model/Loss Design and Coding Plan</h1>
+        <p class="subtitle">
+          This document closes the design phase by consolidating the final MSE
+          and CICFM contracts, then turning them into an implementation plan for
+          the model/loss coding work.
+        </p>
+
+        <div class="grid">
+          <div class="card">
+            <div class="label">Phase 1</div>
+            <div class="value">MSE INR</div>
+            <p class="muted">
+              Train direct coordinate-to-value prediction and prove tiny-batch
+              overfit before starting CICFM.
+            </p>
+          </div>
+          <div class="card">
+            <div class="label">Phase 2</div>
+            <div class="value">CICFM</div>
+            <p class="muted">
+              Rebuild the first layer for <code>features, zt, t</code> and
+              predict value-space velocity.
+            </p>
+          </div>
+          <div class="card">
+            <div class="label">Coding Rule</div>
+            <div class="value">Gated PRs</div>
+            <p class="muted">
+              Land model math, loss math, CICFM assembly, backward checks, and
+              training runtime in separate verifiable steps.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <h2>Files Added</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>docs/final_model_loss_design.md</code></td>
+            <td>
+              Final source-of-truth design for MSE, CICFM, dimensions, coding
+              plan, tests, benchmarks, CUDA alignment, and debug gates.
+            </td>
+          </tr>
+          <tr>
+            <td><code>docs/final_model_loss_design_implementation.html</code></td>
+            <td>
+              Browser-readable summary of the final design and coding plan.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Final Frozen Design</h2>
+      <p>
+        The trainable baseline has one MLP family. MSE and CICFM share the same
+        hidden architecture, activation, output dimension, loss reduction, and
+        backward formulas. They differ in input assembly and loss target.
+      </p>
+
+      <pre><code>Linear(input_dim, 256)
+SiLU
+Linear(256, 256)
+SiLU
+Linear(256, 256)
+SiLU
+Linear(256, C)</code></pre>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>Input</th>
+            <th>Output Meaning</th>
+            <th>Loss Target</th>
+            <th>F = 8</th>
+            <th>F = 16</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MSE</td>
+            <td><code>features</code></td>
+            <td><code>prediction</code></td>
+            <td><code>targets</code></td>
+            <td><code>34</code></td>
+            <td><code>66</code></td>
+          </tr>
+          <tr>
+            <td>CICFM</td>
+            <td><code>concat(features, zt, t)</code></td>
+            <td><code>predicted_velocity</code></td>
+            <td><code>target_velocity = z1 - z0</code></td>
+            <td><code>38</code></td>
+            <td><code>70</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>MSE Formula</h2>
+      <pre><code>features = fourier_embedding(coordinates, F)
+prediction = mlp(features)
+loss = mean((prediction - targets)^2)
+d_prediction = 2 * (prediction - targets) / (B * N * C)</code></pre>
+
+      <h2>CICFM Formula</h2>
+      <pre><code>z1 = targets
+z0 ~ Uniform(0, 1)
+t ~ Uniform(0, 1), shape [B, N, 1]
+zt = (1 - t) * z0 + t * z1
+target_velocity = z1 - z0
+cicfm_input = concat(features, zt, t)
+predicted_velocity = mlp(cicfm_input)
+loss = mean((predicted_velocity - target_velocity)^2)</code></pre>
+
+      <div class="warning">
+        CICFM must not start until the MSE tiny overfit test passes and manual
+        backward math is verified.
+      </div>
+
+      <h2>Coding PR Plan</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>PR</th>
+            <th>Goal</th>
+            <th>Primary Files</th>
+            <th>Required Check</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Add model/loss configs and headers</td>
+            <td><code>include/model/*</code>, <code>include/training/*</code></td>
+            <td>Compiles with empty or minimal implementations</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Implement MLP forward and SiLU</td>
+            <td><code>src/model/mlp.cpp</code>, <code>tests/test_mlp_forward.cpp</code></td>
+            <td>Forward shape and SiLU hand checks pass</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Implement shared MSE loss</td>
+            <td><code>src/training/loss.cpp</code>, <code>tests/test_loss.cpp</code></td>
+            <td>MSE scalar and output-gradient checks pass</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Implement CICFM assembly</td>
+            <td><code>src/training/cicfm.cpp</code>, <code>tests/test_cicfm.cpp</code></td>
+            <td>Deterministic <code>zt</code>, velocity, and dimensions pass</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Implement manual backward</td>
+            <td><code>src/model/mlp.cpp</code>, <code>tests/test_mlp_backward.cpp</code></td>
+            <td>Tiny finite-difference gradient checks pass</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Add optimizer and training loop</td>
+            <td><code>src/training/*</code></td>
+            <td>MSE deterministic overfit decreases loss</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Add CICFM training transition</td>
+            <td><code>src/training/*</code>, <code>tests/test_training_debug.cpp</code></td>
+            <td>CICFM deterministic overfit decreases and random CICFM is finite</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>Add timing and CUDA alignment checks</td>
+            <td><code>benchmarks/*</code>, <code>tests/test_cpu_cuda_parity.cu</code></td>
+            <td>Embedding parity and benchmark fields are present</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Recommended New Files</h2>
+      <pre><code>include/model/mlp.h
+src/model/mlp.cpp
+include/training/loss.h
+src/training/loss.cpp
+include/training/cicfm.h
+src/training/cicfm.cpp
+include/training/train_config.h
+include/training/train_debug.h
+src/training/train_debug.cpp
+tests/test_mlp_forward.cpp
+tests/test_loss.cpp
+tests/test_cicfm.cpp
+tests/test_mlp_backward.cpp
+tests/test_training_debug.cpp</code></pre>
+
+      <h2>Correctness Gates</h2>
+      <ol>
+        <li>MSE forward shapes pass.</li>
+        <li>MSE loss and output gradient pass hand checks.</li>
+        <li>MLP backward passes finite differences.</li>
+        <li>MSE tiny overfit loss decreases.</li>
+        <li>Deterministic CICFM assembly passes.</li>
+        <li>CICFM loss target probe passes.</li>
+        <li>CICFM deterministic backward gradients are finite.</li>
+        <li>CICFM deterministic overfit loss decreases.</li>
+        <li>Random CICFM remains finite.</li>
+        <li><code>F = 16</code> passes the same shape and finite checks.</li>
+      </ol>
+
+      <h2>CUDA and Benchmark Plan</h2>
+      <p>
+        Keep the existing coordinate embedding benchmarks active. Add training
+        timing only after the MSE overfit test passes, and keep CUDA alignment
+        focused on the model input contract.
+      </p>
+
+      <pre><code>features = concat(raw_coordinates, fourier_features)
+cicfm_input = concat(features, zt, t)</code></pre>
+
+      <p>Training benchmark rows should separate these timings:</p>
+
+      <pre><code>forward_ms
+loss_ms
+backward_ms
+step_ms
+cicfm_assembly_ms</code></pre>
+
+      <div class="callout">
+        The coding phase is complete when MSE overfits, CICFM deterministic
+        overfits, random CICFM stays finite, and CPU/CUDA embedding inputs still
+        match the final model input contract.
+      </div>
+    </main>
+  </body>
+</html>
