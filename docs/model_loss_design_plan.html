@@ -283,6 +283,11 @@
             <td><a href="./mse_to_cicfm_conversion.md">mse_to_cicfm_conversion.md</a></td>
             <td>Defines the controlled conversion from MSE value prediction to CICFM velocity prediction.</td>
           </tr>
+          <tr>
+            <td>Day 6</td>
+            <td><a href="./loss_transition_debugging.md">loss_transition_debugging.md</a></td>
+            <td>Defines deterministic probes, debug logging, finite-value gates, and loss-transition triage.</td>
+          </tr>
         </tbody>
       </table>
 
@@ -381,9 +386,12 @@ Linear(256, C)</code></pre>
       <section class="day">
         <h3><span class="pill">Day 6</span>Debug Loss Transition</h3>
         <ul>
-          <li>Check loss, mean time, mean absolute zt, and velocity magnitudes.</li>
-          <li>Run deterministic CICFM smoke tests before random CICFM batches.</li>
-          <li>Use <code>F = 8</code> before scaling to <code>F = 16</code>.</li>
+          <li>Run MSE deterministic overfit and random sampled batches first.</li>
+          <li>Run deterministic CICFM with <code>z0 = 0</code> and <code>t = 0.5</code>.</li>
+          <li>Verify CICFM compares <code>predicted_velocity</code> to <code>target_velocity</code>.</li>
+          <li>Log loss, time range, z statistics, velocity magnitudes, and output-gradient magnitudes.</li>
+          <li>Abort on the first non-finite loss, output, gradient, or updated parameter.</li>
+          <li>Use <code>F = 8</code> before scaling random CICFM to <code>F = 16</code>.</li>
         </ul>
       </section>
 

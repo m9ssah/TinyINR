@@ -17,6 +17,10 @@ Day 5 extends this contract in `docs/mse_to_cicfm_conversion.md`, which freezes
 the controlled conversion from direct MSE value prediction to CICFM velocity
 prediction.
 
+Day 6 extends this contract in `docs/loss_transition_debugging.md`, which
+freezes the deterministic probes, logging, finite-value checks, and triage rules
+used to debug the MSE-to-CICFM transition.
+
 ## Scope
 
 The first training milestone has two controlled phases:
@@ -305,6 +309,6 @@ mean_abs_target
 - [x] Define CICFM Scaffolding
 - [x] Verify MSE training logic and backward math
 - [x] Convert MSE to CICFM (use explicit loss mode)
-- [ ] Debug model behavior and loss transition
+- [x] Debug model behavior and loss transition
 - [ ] Document the final model and loss design
  
