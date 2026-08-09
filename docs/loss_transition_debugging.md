@@ -1,18 +1,5 @@
 # Day 6: Debug Loss Transition
 
-This document freezes the debugging plan for moving from the verified MSE
-baseline to CICFM training. It builds on:
-
-- `docs/model_loss_contract.md`
-- `docs/mlp_forward_mse_semantics.md`
-- `docs/cicfm_scaffolding.md`
-- `docs/mse_backward_verification.md`
-- `docs/mse_to_cicfm_conversion.md`
-
-Day 6 does not add a new objective. It defines how to diagnose the transition
-when the same MLP family stops predicting values and starts predicting
-value-space velocity.
-
 ## Goal
 
 Make CICFM failures local and explainable. The transition is considered
