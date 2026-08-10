@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MSE and CICFM Model/Loss Implementation</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --soft: #eef6f6;
+        --text: #172033;
+        --muted: #637083;
+        --border: #d8e1eb;
+        --accent: #0f766e;
+        --accent-soft: #ccfbf1;
+        --warn: #92400e;
+        --warn-soft: #fef3c7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.58;
+        margin: 0;
+      }
+
+      main {
+        margin: 0 auto;
+        max-width: 1120px;
+        padding: 44px 24px 64px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      h2 {
+        border-top: 1px solid var(--border);
+        font-size: 24px;
+        margin-top: 38px;
+        padding-top: 26px;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin-top: 22px;
+      }
+
+      p {
+        margin: 12px 0;
+      }
+
+      ul,
+      ol {
+        margin: 12px 0 0;
+        padding-left: 24px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      code,
+      pre {
+        background: var(--soft);
+        border-radius: 7px;
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      code {
+        font-size: 0.92em;
+        padding: 2px 5px;
+      }
+
+      pre {
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        padding: 14px 16px;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin-top: 14px;
+        width: 100%;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 12px 14px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--soft);
+      }
+
+      .hero,
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .hero {
+        padding: 28px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 18px;
+        margin-top: 12px;
+        max-width: 860px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .label {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .value {
+        font-size: 26px;
+        font-weight: 760;
+        margin-top: 8px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .callout {
+        background: var(--accent-soft);
+        border: 1px solid #99f6e4;
+        border-radius: 10px;
+        margin-top: 18px;
+        padding: 16px 18px;
+      }
+
+      .warning {
+        background: var(--warn-soft);
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        color: var(--warn);
+        margin-top: 18px;
+        padding: 16px 18px;
+      }
+
+      @media (max-width: 780px) {
+        main {
+          padding: 28px 16px 48px;
+        }
+
+        h1 {
+          font-size: 30px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>MSE and CICFM Model/Loss Implementation</h1>
+        <p class="subtitle">
+          This page explains the CPU trainable baseline added on branch
+          <code>mse-cicfm</code>: the four-layer SiLU MLP, shared MSE loss,
+          CICFM batch assembly, manual backward pass, SGD smoke training, and
+          validation tests.
+        </p>
+
+        <div class="grid">
+          <div class="card">
+            <div class="label">Model</div>
+            <div class="value">4 linear layers</div>
+            <p class="muted">Three SiLU hidden layers and an identity output.</p>
+          </div>
+          <div class="card">
+            <div class="label">Loss Modes</div>
+            <div class="value">MSE + CICFM</div>
+            <p class="muted">Both modes reuse the same MSE reduction.</p>
+          </div>
+          <div class="card">
+            <div class="label">Validation</div>
+            <div class="value">6 CPU tests</div>
+            <p class="muted">Forward, loss, CICFM, backward, overfit, and embedding.</p>
+          </div>
+        </div>
+      </section>
+
+      <h2>Implementation Files</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>include/model/mlp.h</code>, <code>src/model/mlp.cpp</code></td>
+            <td>
+              Defines <code>MlpConfig</code>, four <code>LinearLayer</code>
+              parameters, deterministic initialization, SiLU, forward caching,
+              manual backward, zeroing gradients, and SGD updates.
+            </td>
+          </tr>
+          <tr>
+            <td><code>include/training/loss.h</code>, <code>src/training/loss.cpp</code></td>
+            <td>
+              Implements shared MSE scalar loss, output gradient, loss+gradient
+              helper, and dimension helpers for MSE and CICFM input sizes.
+            </td>
+          </tr>
+          <tr>
+            <td><code>include/training/cicfm.h</code>, <code>src/training/cicfm.cpp</code></td>
+            <td>
+              Implements CICFM source/time assembly, deterministic CICFM debug
+              batches, <code>zt</code>, <code>target_velocity</code>, and
+              <code>concat(features, zt, t)</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>include/training/train_debug.h</code>, <code>src/training/train_debug.cpp</code></td>
+            <td>
+              Adds finite-value and magnitude statistics for tensors,
+              parameters, and gradients.
+            </td>
+          </tr>
+          <tr>
+            <td><code>include/training/train_step.h</code>, <code>src/training/train_step.cpp</code></td>
+            <td>
+              Adds the <code>LossMode</code>-driven train-step interface. This
+              is now the single dispatch point for selecting MSE
+              <code>features/targets</code> or CICFM
+              <code>concat(features, zt, t)/target_velocity</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>CMakeLists.txt</code></td>
+            <td>
+              Builds the new CPU model/loss modules and tests. CUDA targets are
+              now optional so CPU tests can run on machines without
+              <code>nvcc</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Model Path</h2>
+      <pre><code>Linear(input_dim, hidden_width)
+SiLU
+Linear(hidden_width, hidden_width)
+SiLU
+Linear(hidden_width, hidden_width)
+SiLU
+Linear(hidden_width, output_dim)</code></pre>
+
+      <p>
+        The baseline helper uses width 256, but tests can create smaller models
+        so finite-difference and overfit checks stay fast.
+      </p>
+
+      <h2>MSE Path</h2>
+      <pre><code>features -> mlpForward -> prediction
+loss = mean((prediction - targets)^2)
+d_prediction = 2 * (prediction - targets) / count
+mlpBackward(model, cache, d_prediction)
+sgdStep(model, learning_rate)</code></pre>
+
+      <h2>CICFM Path</h2>
+      <pre><code>z1 = targets
+z0 ~ Uniform(0, 1)
+t ~ Uniform(0, 1)
+zt = (1 - t) * z0 + t * z1
+target_velocity = z1 - z0
+cicfm_input = concat(features, zt, t)
+predicted_velocity = mlpForward(model, cicfm_input)
+loss = mean((predicted_velocity - target_velocity)^2)</code></pre>
+
+      <div class="callout">
+        CICFM changes the model input and the loss target, but it reuses the
+        same MLP forward, MSE reduction, MSE output gradient, backward pass, and
+        SGD update.
+      </div>
+
+      <h2>LossMode Train Step</h2>
+      <p>
+        The branch now includes a unified <code>trainStep</code> function. The
+        caller passes <code>LossMode::MSE</code> or
+        <code>LossMode::CICFM</code>, and the train step validates dimensions,
+        selects the model input, selects the loss target, runs forward/loss/
+        backward, applies SGD, and returns debug tensors and stats.
+      </p>
+
+      <pre><code>MSE trainStep:
+  model_input = features
+  loss_target = targets
+
+CICFM trainStep:
+  cicfm = makeCicfmBatch(features, targets, z0, t)
+  model_input = cicfm.input
+  loss_target = cicfm.target_velocity</code></pre>
+
+      <p>
+        The CICFM dispatch test uses seeded random <code>z0</code> and
+        <code>t</code> so it proves the loss target is
+        <code>target_velocity = z1 - z0</code>, not raw
+        <code>targets</code>.
+      </p>
+
+      <h2>Tests Added</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>test_mlp_forward</code></td>
+            <td>Checks SiLU values, output shape, cache shape, and deterministic initialization.</td>
+          </tr>
+          <tr>
+            <td><code>test_loss</code></td>
+            <td>Checks hand-computed MSE loss, output gradient, and MSE/CICFM dimensions.</td>
+          </tr>
+          <tr>
+            <td><code>test_cicfm</code></td>
+            <td>Checks deterministic <code>zt</code>, <code>target_velocity</code>, input dimension, and velocity-target loss.</td>
+          </tr>
+          <tr>
+            <td><code>test_mlp_backward</code></td>
+            <td>Checks finite gradients and finite-difference agreement for selected parameters.</td>
+          </tr>
+          <tr>
+            <td><code>test_training_debug</code></td>
+            <td>Checks MSE overfit loss decrease, CICFM deterministic overfit loss decrease, and finite random CICFM step.</td>
+          </tr>
+          <tr>
+            <td><code>test_train_step</code></td>
+            <td>Checks <code>LossMode</code> dispatch, MSE/CICFM dimension rejection, and CICFM target-velocity selection.</td>
+          </tr>
+          <tr>
+            <td><code>test_full_size_baseline</code></td>
+            <td>Checks real width-256 MSE and CICFM finite train steps with frozen <code>F = 8</code> dimensions.</td>
+          </tr>
+          <tr>
+            <td><code>test_fourier_embedding_tensor</code></td>
+            <td>Existing embedding contract test, rerun to protect the input feature path.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Validation Commands</h2>
+      <pre><code>cmake -S . -B build
+cmake --build build
+./build/test_fourier_embedding_tensor
+./build/test_mlp_forward
+./build/test_loss
+./build/test_cicfm
+./build/test_mlp_backward
+./build/test_training_debug
+./build/test_train_step
+./build/test_full_size_baseline
+python3 -m html.parser docs/mse_cicfm_implementation.html
+git diff --check</code></pre>
+
+      <div class="warning">
+        <code>clang-format</code> was not installed on this local machine. The
+        touched C++ was kept in the existing project style and passed
+        <code>git diff --check</code>.
+      </div>
+    </main>
+  </body>
+</html>

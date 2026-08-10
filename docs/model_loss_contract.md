@@ -13,6 +13,18 @@ sampling, interpolation, velocity targets, and CICFM model input assembly.
 Day 4 extends this contract in `docs/mse_backward_verification.md`, which
 freezes MSE training-logic checks and manual backward math for the baseline MLP.
 
+Day 5 extends this contract in `docs/mse_to_cicfm_conversion.md`, which freezes
+the controlled conversion from direct MSE value prediction to CICFM velocity
+prediction.
+
+Day 6 extends this contract in `docs/loss_transition_debugging.md`, which
+freezes the deterministic probes, logging, finite-value checks, and triage rules
+used to debug the MSE-to-CICFM transition.
+
+Day 7 closes this contract in `docs/final_model_loss_design.md`, which
+consolidates the final MSE/CICFM design and defines the coding plan for model
+math, loss math, CICFM assembly, tests, benchmarks, and CUDA alignment.
+
 ## Scope
 
 The first training milestone has two controlled phases:
@@ -300,7 +312,7 @@ mean_abs_target
 - [x] Define MLP forward semantics and MSE target
 - [x] Define CICFM Scaffolding
 - [x] Verify MSE training logic and backward math
-- [ ] Convert MSE to CICFM (use explicit loss mode)
-- [ ] Debug model behavior and loss transition
-- [ ] Document the final model and loss design
+- [x] Convert MSE to CICFM (use explicit loss mode)
+- [x] Debug model behavior and loss transition
+- [x] Document the final model and loss design
  
