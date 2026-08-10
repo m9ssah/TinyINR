@@ -196,10 +196,8 @@
       <section class="hero">
         <h1>TinyINR Model/Loss Contract CPU Reference Overview</h1>
         <p class="subtitle">
-          Partner review guide for the <code>mse-cicfm</code> branch. This page
-          summarizes what was implemented for the model/loss contract and the
-          CPU reference path, plus the exact CUDA/runtime boundaries your
-          partner can build against.
+          This page summarizes what was implemented for the model/loss contract and the
+          CPU reference path, and the exact CUDA/runtime boundaries for partner handoff. 
         </p>
 
         <div class="grid">
@@ -306,11 +304,6 @@
           </tr>
         </tbody>
       </table>
-
-      <div class="callout">
-        The CPU path is the reference path. It is the behavior CUDA should match
-        before any GPU-only optimization is considered correct.
-      </div>
 
       <h2>Contract Summary</h2>
       <p>
