@@ -1,15 +1,4 @@
-# Day 5: Convert MSE to CICFM
-
-This document freezes the controlled conversion from the MSE baseline to the
-CICFM velocity-prediction objective. It builds on:
-
-- `docs/model_loss_contract.md`
-- `docs/mlp_forward_mse_semantics.md`
-- `docs/cicfm_scaffolding.md`
-- `docs/mse_backward_verification.md`
-
-Day 5 does not redesign the model. It changes what enters the model, what the
-model output means, and what target the MSE reduction compares against.
+# Convert MSE to CICFM
 
 ## Goal
 
@@ -454,9 +443,6 @@ CUDA model kernels
 optimizer comparisons
 activation ablations
 ```
-
-Day 5 is only the controlled objective conversion from MSE value prediction to
-CICFM velocity prediction.
 
 ## Day 5 Definition of Done
 

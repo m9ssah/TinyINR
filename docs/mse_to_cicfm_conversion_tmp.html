@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>mse_to_cicfm_conversion.md</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+html,footer,header{
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Custom MD PDF CSS
+ */
+html,footer,header{
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+
+ }
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+<link rel="stylesheet" href="file:///Users/jemimasilaen/Documents/TinyINR/R%3A%5C2.Travail%5C1.Enseignement%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css"><link rel="stylesheet" href="file:///Users/jemimasilaen/Documents/TinyINR/D%3A%5Crdaros%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css">
+</head>
+
+<body>
+    <h1 id="convert-mse-to-cicfm">Convert MSE to CICFM</h1>
+<h2 id="goal">Goal</h2>
+<p>Convert the baseline from:</p>
+<pre class="hljs"><code><div>features -&gt; mlp -&gt; predicted value
+predicted value vs targets -&gt; MSE
+</div></code></pre>
+<p>to:</p>
+<pre class="hljs"><code><div>concat(features, zt, t) -&gt; mlp -&gt; predicted velocity
+predicted velocity vs target_velocity -&gt; MSE
+</div></code></pre>
+<p>The hidden MLP architecture, optimizer, parameter-update rule, batch flattening<br>
+rule, and backward formulas remain the same.</p>
+<h2 id="required-precondition">Required Precondition</h2>
+<p>Do not enable CICFM training until the MSE path passes Day 4 checks:</p>
+<pre class="hljs"><code><div>MSE scalar loss check passes
+MSE output-gradient check passes
+SiLU derivative check passes
+linear backward check passes
+full MLP finite-difference check passes
+tiny fixed-batch MSE loss decreases
+</div></code></pre>
+<p>If the MSE path cannot overfit a deterministic fixed batch, CICFM training<br>
+should remain disabled.</p>
+<h2 id="explicit-loss-mode">Explicit Loss Mode</h2>
+<p>Training must use an explicit mode:</p>
+<pre class="hljs"><code><div>loss_mode = mse
+loss_mode = cicfm
+</div></code></pre>
+<p>Do not infer the mode from tensor shapes. Shape inference makes debugging more<br>
+fragile once both objectives exist.</p>
+<p>Recommended enum:</p>
+<pre class="hljs"><code><div>enum LossMode {
+  MSE,
+  CICFM
+}
+</div></code></pre>
+<p>The mode controls exactly three things:</p>
+<ol>
+<li>How model input is assembled.</li>
+<li>What the model output means.</li>
+<li>Which target tensor is used by the MSE reduction.</li>
+</ol>
+<p>The mode must not change:</p>
+<pre class="hljs"><code><div>hidden layer count
+hidden width
+activation
+output activation
+optimizer type
+parameter update formula
+linear backward formula
+SiLU backward formula
+batch flattening rule
+</div></code></pre>
+<h2 id="mse-mode-contract">MSE Mode Contract</h2>
+<p>MSE mode remains:</p>
+<pre class="hljs"><code><div>model_input = features
+model_output = prediction
+loss_target = targets
+loss = mean((prediction - targets)^2)
+</div></code></pre>
+<p>Shapes:</p>
+<pre class="hljs"><code><div>features:    [B, N, D + 2 * D * F]
+prediction:  [B, N, C]
+targets:     [B, N, C]
+</div></code></pre>
+<p>For <code>D = 2</code>, <code>C = 3</code>, and <code>F = 8</code>:</p>
+<pre class="hljs"><code><div>model_input_dim = 34
+model_output_dim = 3
+</div></code></pre>
+<p>For <code>F = 16</code>:</p>
+<pre class="hljs"><code><div>model_input_dim = 66
+model_output_dim = 3
+</div></code></pre>
+<h2 id="cicfm-mode-contract">CICFM Mode Contract</h2>
+<p>CICFM mode is:</p>
+<pre class="hljs"><code><div>z1 = targets
+z0 ~ Uniform(0, 1)
+t  ~ Uniform(0, 1), shape [B, N, 1]
+zt = (1 - t) * z0 + t * z1
+target_velocity = z1 - z0
+
+model_input = cicfm_input = concat(features, zt, t)
+model_output = predicted_velocity
+loss_target = target_velocity
+loss = mean((predicted_velocity - target_velocity)^2)
+</div></code></pre>
+<p>Shapes:</p>
+<pre class="hljs"><code><div>features:           [B, N, D + 2 * D * F]
+z0:                 [B, N, C]
+z1:                 [B, N, C]
+t:                  [B, N, 1]
+zt:                 [B, N, C]
+target_velocity:    [B, N, C]
+cicfm_input:        [B, N, D + 2 * D * F + C + 1]
+predicted_velocity: [B, N, C]
+</div></code></pre>
+<p>For <code>D = 2</code>, <code>C = 3</code>, and <code>F = 8</code>:</p>
+<pre class="hljs"><code><div>feature_dim = 34
+cicfm_input_dim = 34 + 3 + 1 = 38
+model_output_dim = 3
+</div></code></pre>
+<p>For <code>F = 16</code>:</p>
+<pre class="hljs"><code><div>feature_dim = 66
+cicfm_input_dim = 66 + 3 + 1 = 70
+model_output_dim = 3
+</div></code></pre>
+<h2 id="conversion-table">Conversion Table</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>MSE mode</th>
+<th>CICFM mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model input</td>
+<td><code>features</code></td>
+<td><code>concat(features, zt, t)</code></td>
+</tr>
+<tr>
+<td>Input dimension</td>
+<td><code>D + 2DF</code></td>
+<td><code>D + 2DF + C + 1</code></td>
+</tr>
+<tr>
+<td>Model output name</td>
+<td><code>prediction</code></td>
+<td><code>predicted_velocity</code></td>
+</tr>
+<tr>
+<td>Output meaning</td>
+<td>Value/RGB</td>
+<td>Velocity in value space</td>
+</tr>
+<tr>
+<td>Output dimension</td>
+<td><code>C</code></td>
+<td><code>C</code></td>
+</tr>
+<tr>
+<td>Loss target</td>
+<td><code>targets</code></td>
+<td><code>target_velocity = z1 - z0</code></td>
+</tr>
+<tr>
+<td>Loss formula</td>
+<td><code>mean((prediction - targets)^2)</code></td>
+<td><code>mean((predicted_velocity - target_velocity)^2)</code></td>
+</tr>
+<tr>
+<td>Backward formula</td>
+<td>MSE output gradient</td>
+<td>Same MSE output gradient, different tensors</td>
+</tr>
+</tbody>
+</table>
+<h2 id="shared-mse-reduction">Shared MSE Reduction</h2>
+<p>Both modes use the same MSE reduction helper:</p>
+<pre class="hljs"><code><div>mse_loss(output, target) =
+  (1 / count) * sum((output - target)^2)
+</div></code></pre>
+<p>The only difference is which tensors are passed to it.</p>
+<p>MSE mode:</p>
+<pre class="hljs"><code><div>output = prediction
+target = targets
+</div></code></pre>
+<p>CICFM mode:</p>
+<pre class="hljs"><code><div>output = predicted_velocity
+target = target_velocity
+</div></code></pre>
+<p>Output gradient for both modes:</p>
+<pre class="hljs"><code><div>d_output = 2 * (output - target) / count
+</div></code></pre>
+<p>For CICFM specifically:</p>
+<pre class="hljs"><code><div>d_predicted_velocity =
+  2 * (predicted_velocity - target_velocity) / (B * N * C)
+</div></code></pre>
+<h2 id="backward-math-reuse">Backward Math Reuse</h2>
+<p>The full MLP backward order does not change:</p>
+<pre class="hljs"><code><div>dY = mse_output_gradient(output, target)
+
+dW3, db3, dA2 = linear_backward(dY, A2, W3)
+dZ2 = dA2 * d_silu(Z2)
+dW2, db2, dA1 = linear_backward(dZ2, A1, W2)
+dZ1 = dA1 * d_silu(Z1)
+dW1, db1, dA0 = linear_backward(dZ1, A0, W1)
+dZ0 = dA0 * d_silu(Z0)
+dW0, db0, dX = linear_backward(dZ0, X, W0)
+</div></code></pre>
+<p>What changes is:</p>
+<pre class="hljs"><code><div>X = flatten(features)             in MSE mode
+X = flatten(cicfm_input)          in CICFM mode
+target = flatten(targets)         in MSE mode
+target = flatten(target_velocity) in CICFM mode
+</div></code></pre>
+<h2 id="model-construction-rule">Model Construction Rule</h2>
+<p>Because the input dimension changes, the first layer shape changes between<br>
+modes.</p>
+<p>MSE with <code>F = 8</code>:</p>
+<pre class="hljs"><code><div>linear0.weight: [256, 34]
+linear0.bias:   [256]
+</div></code></pre>
+<p>CICFM with <code>F = 8</code>:</p>
+<pre class="hljs"><code><div>linear0.weight: [256, 38]
+linear0.bias:   [256]
+</div></code></pre>
+<p>MSE with <code>F = 16</code>:</p>
+<pre class="hljs"><code><div>linear0.weight: [256, 66]
+linear0.bias:   [256]
+</div></code></pre>
+<p>CICFM with <code>F = 16</code>:</p>
+<pre class="hljs"><code><div>linear0.weight: [256, 70]
+linear0.bias:   [256]
+</div></code></pre>
+<p>The remaining layers are unchanged:</p>
+<pre class="hljs"><code><div>linear1.weight: [256, 256]
+linear2.weight: [256, 256]
+linear3.weight: [C, 256]
+</div></code></pre>
+<p>Do not try to reuse an MSE model instance in CICFM mode unless the runtime<br>
+supports rebuilding or resizing the first layer. The clean first implementation<br>
+should construct a new model with the CICFM input dimension.</p>
+<h2 id="shape-checks">Shape Checks</h2>
+<p>Required mode-independent checks:</p>
+<pre class="hljs"><code><div>coordinates.ndim == 3
+features.ndim == 3
+targets.ndim == 3
+features.shape[0] == targets.shape[0]
+features.shape[1] == targets.shape[1]
+targets.shape[2] == C
+</div></code></pre>
+<p>MSE-specific checks:</p>
+<pre class="hljs"><code><div>model_input.shape == features.shape
+model_input.shape[2] == D + 2 * D * F
+model_output.shape == targets.shape
+loss_target.shape == targets.shape
+</div></code></pre>
+<p>CICFM-specific checks:</p>
+<pre class="hljs"><code><div>z0.shape == targets.shape
+z1.shape == targets.shape
+zt.shape == targets.shape
+target_velocity.shape == targets.shape
+t.shape == [B, N, 1]
+cicfm_input.shape[0] == B
+cicfm_input.shape[1] == N
+cicfm_input.shape[2] == D + 2 * D * F + C + 1
+predicted_velocity.shape == target_velocity.shape
+</div></code></pre>
+<p>Required value checks:</p>
+<pre class="hljs"><code><div>0 &lt;= t[b, n, 0] &lt;= 1
+loss is finite
+all gradients are finite
+</div></code></pre>
+<h2 id="deterministic-conversion-smoke-test">Deterministic Conversion Smoke Test</h2>
+<p>Before enabling random CICFM batches, use deterministic values:</p>
+<pre class="hljs"><code><div>z0 = zeros_like(targets)
+t = 0.5
+z1 = targets
+</div></code></pre>
+<p>Expected:</p>
+<pre class="hljs"><code><div>zt = 0.5 * targets
+target_velocity = targets
+cicfm_input = concat(features, 0.5 * targets, 0.5)
+</div></code></pre>
+<p>Checks:</p>
+<pre class="hljs"><code><div>max_abs(zt - 0.5 * targets) &lt; 1e-6
+max_abs(target_velocity - targets) &lt; 1e-6
+cicfm_input.shape[2] == feature_dim + C + 1
+</div></code></pre>
+<p>If this deterministic smoke test fails, do not run random CICFM training.</p>
+<h2 id="controlled-training-transition">Controlled Training Transition</h2>
+<p>Run the transition in this order:</p>
+<ol>
+<li>Train MSE mode on the deterministic synthetic overfit target.</li>
+<li>Confirm MSE loss decreases.</li>
+<li>Run deterministic CICFM batch assembly with <code>z0 = 0</code> and <code>t = 0.5</code>.</li>
+<li>Confirm CICFM shape and value checks pass.</li>
+<li>Run one CICFM forward pass without updating parameters.</li>
+<li>Confirm CICFM loss is finite.</li>
+<li>Run one CICFM backward pass.</li>
+<li>Confirm all CICFM gradients are finite.</li>
+<li>Only then run CICFM training updates.</li>
+</ol>
+<h2 id="logging-changes">Logging Changes</h2>
+<p>Shared fields:</p>
+<pre class="hljs"><code><div>step
+loss_mode
+loss
+batch_size
+num_points
+input_dim
+output_dim
+learning_rate
+</div></code></pre>
+<p>MSE fields:</p>
+<pre class="hljs"><code><div>mean_abs_prediction
+mean_abs_target
+mean_abs_output_gradient
+</div></code></pre>
+<p>CICFM fields:</p>
+<pre class="hljs"><code><div>mean_t
+min_t
+max_t
+mean_abs_z0
+mean_abs_z1
+mean_abs_zt
+mean_abs_target_velocity
+mean_abs_predicted_velocity
+mean_abs_output_gradient
+</div></code></pre>
+<p>The <code>mean_abs_output_gradient</code> field should refer to:</p>
+<pre class="hljs"><code><div>d_prediction           in MSE mode
+d_predicted_velocity   in CICFM mode
+</div></code></pre>
+<h2 id="unit-test-plan">Unit Test Plan</h2>
+<p>Add small tests in this order:</p>
+<ol>
+<li><code>LossMode</code> dispatch selects MSE tensors correctly.</li>
+<li><code>LossMode</code> dispatch selects CICFM tensors correctly.</li>
+<li>CICFM deterministic assembly produces expected <code>zt</code>.</li>
+<li>CICFM deterministic assembly produces expected <code>target_velocity</code>.</li>
+<li>CICFM input dimension is correct for <code>F = 8</code>.</li>
+<li>CICFM input dimension is correct for <code>F = 16</code>.</li>
+<li>CICFM loss uses <code>target_velocity</code>, not <code>targets</code>.</li>
+<li>CICFM output gradient matches <code>2 * (predicted_velocity - target_velocity) / count</code>.</li>
+</ol>
+<h2 id="common-conversion-bugs">Common Conversion Bugs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>First check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CICFM input shape is too small</td>
+<td>Forgot to append <code>zt</code> or <code>t</code></td>
+<td>Check last dimension</td>
+</tr>
+<tr>
+<td>CICFM loss decreases toward targets</td>
+<td>Compared velocity output to <code>targets</code></td>
+<td>Check loss target</td>
+</tr>
+<tr>
+<td>First layer shape mismatch</td>
+<td>Reused MSE model with CICFM input</td>
+<td>Check <code>linear0.weight</code></td>
+</tr>
+<tr>
+<td><code>zt</code> equals <code>targets</code> for all t</td>
+<td>Interpolation ignores <code>z0</code></td>
+<td>Check <code>zt</code> formula</td>
+</tr>
+<tr>
+<td><code>target_velocity</code> changes with t</td>
+<td>Used derivative of wrong path</td>
+<td>Check <code>z1 - z0</code></td>
+</tr>
+<tr>
+<td>Training starts with NaN</td>
+<td>Invalid time/source values or large updates</td>
+<td>Check finite-value logs</td>
+</tr>
+</tbody>
+</table>
+<h2 id="not-in-day-5">Not in Day 5</h2>
+<p>Do not include these in Day 5 scope:</p>
+<pre class="hljs"><code><div>ODE sampling after training
+adaptive coordinate sampling
+sinusoidal time embedding
+separate context tensor
+CUDA model kernels
+optimizer comparisons
+activation ablations
+</div></code></pre>
+<h2 id="day-5-definition-of-done">Day 5 Definition of Done</h2>
+<p>Day 5 is complete when:</p>
+<ol>
+<li><code>loss_mode</code> explicitly selects MSE or CICFM.</li>
+<li>MSE mode still uses <code>features -&gt; prediction -&gt; targets</code>.</li>
+<li>CICFM mode uses <code>concat(features, zt, t) -&gt; predicted_velocity</code>.</li>
+<li>CICFM loss target is <code>target_velocity</code>, not <code>targets</code>.</li>
+<li>CICFM target velocity is <code>z1 - z0</code>.</li>
+<li>CICFM input dimensions are documented for <code>F = 8</code> and <code>F = 16</code>.</li>
+<li>First-layer shape changes are documented.</li>
+<li>Shared MSE reduction and backward reuse are documented.</li>
+<li>Deterministic CICFM smoke test is documented.</li>
+<li>CICFM training remains gated behind MSE overfit and finite-gradient checks.</li>
+</ol>
+
+</body>
+
+</html>
