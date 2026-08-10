@@ -22,6 +22,7 @@ add_library(tinyinr_core STATIC
     src/training/cicfm.cpp
     src/training/loss.cpp
     src/training/train_debug.cpp
+    src/training/train_step.cpp
 )
 target_include_directories(tinyinr_core PUBLIC include)
 
@@ -54,6 +55,16 @@ add_executable(test_training_debug
     tests/test_training_debug.cpp
 )
 target_link_libraries(test_training_debug PRIVATE tinyinr_core)
+
+add_executable(test_train_step
+    tests/test_train_step.cpp
+)
+target_link_libraries(test_train_step PRIVATE tinyinr_core)
+
+add_executable(test_full_size_baseline
+    tests/test_full_size_baseline.cpp
+)
+target_link_libraries(test_full_size_baseline PRIVATE tinyinr_core)
 
 if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:

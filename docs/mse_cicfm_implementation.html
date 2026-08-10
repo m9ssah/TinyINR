@@ -261,6 +261,15 @@
             </td>
           </tr>
           <tr>
+            <td><code>include/training/train_step.h</code>, <code>src/training/train_step.cpp</code></td>
+            <td>
+              Adds the <code>LossMode</code>-driven train-step interface. This
+              is now the single dispatch point for selecting MSE
+              <code>features/targets</code> or CICFM
+              <code>concat(features, zt, t)/target_velocity</code>.
+            </td>
+          </tr>
+          <tr>
             <td><code>CMakeLists.txt</code></td>
             <td>
               Builds the new CPU model/loss modules and tests. CUDA targets are
@@ -308,6 +317,31 @@ loss = mean((predicted_velocity - target_velocity)^2)</code></pre>
         SGD update.
       </div>
 
+      <h2>LossMode Train Step</h2>
+      <p>
+        The branch now includes a unified <code>trainStep</code> function. The
+        caller passes <code>LossMode::MSE</code> or
+        <code>LossMode::CICFM</code>, and the train step validates dimensions,
+        selects the model input, selects the loss target, runs forward/loss/
+        backward, applies SGD, and returns debug tensors and stats.
+      </p>
+
+      <pre><code>MSE trainStep:
+  model_input = features
+  loss_target = targets
+
+CICFM trainStep:
+  cicfm = makeCicfmBatch(features, targets, z0, t)
+  model_input = cicfm.input
+  loss_target = cicfm.target_velocity</code></pre>
+
+      <p>
+        The CICFM dispatch test uses seeded random <code>z0</code> and
+        <code>t</code> so it proves the loss target is
+        <code>target_velocity = z1 - z0</code>, not raw
+        <code>targets</code>.
+      </p>
+
       <h2>Tests Added</h2>
       <table>
         <thead>
@@ -338,6 +372,14 @@ loss = mean((predicted_velocity - target_velocity)^2)</code></pre>
             <td>Checks MSE overfit loss decrease, CICFM deterministic overfit loss decrease, and finite random CICFM step.</td>
           </tr>
           <tr>
+            <td><code>test_train_step</code></td>
+            <td>Checks <code>LossMode</code> dispatch, MSE/CICFM dimension rejection, and CICFM target-velocity selection.</td>
+          </tr>
+          <tr>
+            <td><code>test_full_size_baseline</code></td>
+            <td>Checks real width-256 MSE and CICFM finite train steps with frozen <code>F = 8</code> dimensions.</td>
+          </tr>
+          <tr>
             <td><code>test_fourier_embedding_tensor</code></td>
             <td>Existing embedding contract test, rerun to protect the input feature path.</td>
           </tr>
@@ -353,6 +395,8 @@ cmake --build build
 ./build/test_cicfm
 ./build/test_mlp_backward
 ./build/test_training_debug
+./build/test_train_step
+./build/test_full_size_baseline
 python3 -m html.parser docs/mse_cicfm_implementation.html
 git diff --check</code></pre>
 
