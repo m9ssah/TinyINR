@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TinyINR MSE/CICFM File Relationships and Workflow</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --soft: #eef6f6;
+        --text: #172033;
+        --muted: #637083;
+        --border: #d8e1eb;
+        --accent: #0f766e;
+        --accent-soft: #ccfbf1;
+        --warn: #92400e;
+        --warn-soft: #fef3c7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.58;
+        margin: 0;
+      }
+
+      main {
+        margin: 0 auto;
+        max-width: 1120px;
+        padding: 44px 24px 64px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      h2 {
+        border-top: 1px solid var(--border);
+        font-size: 24px;
+        margin-top: 38px;
+        padding-top: 26px;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin-top: 22px;
+      }
+
+      p {
+        margin: 12px 0;
+      }
+
+      ul,
+      ol {
+        margin: 12px 0 0;
+        padding-left: 24px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      code,
+      pre {
+        background: var(--soft);
+        border-radius: 7px;
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      code {
+        font-size: 0.92em;
+        padding: 2px 5px;
+      }
+
+      pre {
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        padding: 14px 16px;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin-top: 14px;
+        width: 100%;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 12px 14px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--soft);
+      }
+
+      .hero,
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .hero {
+        padding: 28px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 18px;
+        margin-top: 12px;
+        max-width: 860px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .label {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .value {
+        font-size: 25px;
+        font-weight: 760;
+        margin-top: 8px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .callout {
+        background: var(--accent-soft);
+        border: 1px solid #99f6e4;
+        border-radius: 10px;
+        margin-top: 18px;
+        padding: 16px 18px;
+      }
+
+      .warning {
+        background: var(--warn-soft);
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        color: var(--warn);
+        margin-top: 18px;
+        padding: 16px 18px;
+      }
+
+      @media (max-width: 780px) {
+        main {
+          padding: 28px 16px 48px;
+        }
+
+        h1 {
+          font-size: 30px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>TinyINR MSE/CICFM File Relationships and Workflow</h1>
+        <p class="subtitle">
+          An intuitive map of how the tensor, feature, model, loss, CICFM,
+          train-step, debug, and test files work together in the current
+          <code>mse-cicfm</code> branch.
+        </p>
+
+        <div class="grid">
+          <div class="card">
+            <div class="label">Foundation</div>
+            <div class="value">Tensor + features</div>
+            <p class="muted">
+              Data starts as tensors, coordinates, targets, and Fourier
+              features.
+            </p>
+          </div>
+          <div class="card">
+            <div class="label">Learning Core</div>
+            <div class="value">MLP + loss</div>
+            <p class="muted">
+              The same four-layer SiLU MLP learns either values or velocities.
+            </p>
+          </div>
+          <div class="card">
+            <div class="label">Mode Switch</div>
+            <div class="value">trainStep</div>
+            <p class="muted">
+              <code>LossMode</code> decides which input and target enter the
+              shared training path.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <h2>Mental Model</h2>
+      <p>
+        Think of TinyINR as a pipeline with one stable training engine and two
+        ways to prepare the tensors going into it.
+      </p>
+
+      <pre><code>shared engine:
+  model_input -> MLP -> model_output
+  model_output + loss_target -> MSE loss
+  MSE gradient -> MLP backward -> SGD update
+
+MSE mode prepares:
+  model_input = features
+  loss_target = targets
+
+CICFM mode prepares:
+  model_input = concat(features, zt, t)
+  loss_target = target_velocity</code></pre>
+
+      <div class="callout">
+        The important idea: CICFM does not need a separate loss implementation.
+        It reuses MSE by changing the meaning of the model output and target.
+      </div>
+
+      <h2>Layer Map</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Files</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tensor foundation</td>
+            <td><code>include/tensor.h</code>, <code>src/tensor.cpp</code></td>
+            <td>
+              Owns CPU float tensors, shapes, indexing, reshape, and simple
+              math operations. Every higher-level module passes data through
+              this class.
+            </td>
+          </tr>
+          <tr>
+            <td>Coordinate data</td>
+            <td><code>include/ops/coordinate_batch.h</code>, <code>src/ops/coordinate_batch.cpp</code></td>
+            <td>
+              Converts image-like values into normalized coordinates and target
+              values with shapes <code>[B, N, D]</code> and
+              <code>[B, N, C]</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Feature embedding</td>
+            <td><code>include/ops/fourier_embedding.h</code>, <code>src/ops/fourier_embedding.cpp</code>, <code>src/ops/fourier_embedding_raw.cpp</code></td>
+            <td>
+              Converts coordinates into model features:
+              <code>raw coordinates + Fourier features</code>. For
+              <code>D = 2</code> and <code>F = 8</code>, this produces
+              <code>34</code> features.
+            </td>
+          </tr>
+          <tr>
+            <td>MLP model</td>
+            <td><code>include/model/mlp.h</code>, <code>src/model/mlp.cpp</code></td>
+            <td>
+              Implements the four-layer SiLU MLP, deterministic initialization,
+              forward cache, manual backward pass, gradient clearing, and SGD
+              update.
+            </td>
+          </tr>
+          <tr>
+            <td>Shared MSE loss</td>
+            <td><code>include/training/loss.h</code>, <code>src/training/loss.cpp</code></td>
+            <td>
+              Computes <code>mean((output - target)^2)</code>, its output
+              gradient, and the expected MSE/CICFM input dimensions.
+            </td>
+          </tr>
+          <tr>
+            <td>CICFM assembly</td>
+            <td><code>include/training/cicfm.h</code>, <code>src/training/cicfm.cpp</code></td>
+            <td>
+              Builds <code>z0</code>, <code>z1</code>, <code>t</code>,
+              <code>zt</code>, <code>target_velocity</code>, and
+              <code>concat(features, zt, t)</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Debug stats</td>
+            <td><code>include/training/train_debug.h</code>, <code>src/training/train_debug.cpp</code></td>
+            <td>
+              Checks tensor, parameter, and gradient finiteness and tracks
+              simple magnitudes.
+            </td>
+          </tr>
+          <tr>
+            <td>Training dispatch</td>
+            <td><code>include/training/train_step.h</code>, <code>src/training/train_step.cpp</code></td>
+            <td>
+              The end-to-end CPU train step. It validates dimensions, switches
+              on <code>LossMode</code>, chooses model input and loss target,
+              runs forward/loss/backward, applies SGD, and returns debug data.
+            </td>
+          </tr>
+          <tr>
+            <td>CUDA embedding path</td>
+            <td><code>src/kernels/coordinate_embedding.cu</code>, <code>src/kernels/coordinate_embedding.cuh</code>, <code>tests/test_cpu_cuda_parity.cu</code></td>
+            <td>
+              Covers CUDA coordinate/Fourier embedding only. The trainable MLP,
+              loss, CICFM assembly, backward pass, and SGD step are currently
+              CPU-only.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>MSE Workflow</h2>
+      <p>
+        MSE is the direct baseline. The model sees embedded coordinates and
+        predicts target values directly.
+      </p>
+
+      <pre><code>1. coordinates: [B, N, 2]
+2. targets:     [B, N, 3]
+3. features = fourierEmbedding(coordinates, F)
+4. trainStep(..., LossMode::MSE)
+5. model_input = features
+6. prediction = mlpForward(model, model_input)
+7. loss_target = targets
+8. loss = mean((prediction - targets)^2)
+9. mlpBackward(...)
+10. sgdStep(...)</code></pre>
+
+      <p>
+        For the frozen <code>F = 8</code> baseline, MSE uses input dimension
+        <code>34</code> and output dimension <code>3</code>.
+      </p>
+
+      <h2>CICFM Workflow</h2>
+      <p>
+        CICFM changes the learning target from value prediction to velocity
+        prediction. The MLP still uses the same architecture and MSE loss
+        helper.
+      </p>
+
+      <pre><code>1. features: [B, N, 34]
+2. targets become z1
+3. sample z0: [B, N, 3]
+4. sample t:  [B, N, 1]
+5. zt = (1 - t) * z0 + t * z1
+6. target_velocity = z1 - z0
+7. cicfm_input = concat(features, zt, t)
+8. trainStep(..., LossMode::CICFM)
+9. predicted_velocity = mlpForward(model, cicfm_input)
+10. loss = mean((predicted_velocity - target_velocity)^2)
+11. mlpBackward(...)
+12. sgdStep(...)</code></pre>
+
+      <p>
+        For the frozen <code>F = 8</code> baseline, CICFM uses input dimension
+        <code>38</code>: <code>34</code> feature values, <code>3</code>
+        interpolated value channels, and <code>1</code> time channel.
+      </p>
+
+      <h2>How Tests Protect the Workflow</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>What It Protects</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>test_fourier_embedding_tensor</code></td>
+            <td>CPU Fourier feature order and feature dimension.</td>
+          </tr>
+          <tr>
+            <td><code>test_mlp_forward</code></td>
+            <td>SiLU values, MLP output shape, cache shape, deterministic initialization.</td>
+          </tr>
+          <tr>
+            <td><code>test_loss</code></td>
+            <td>MSE scalar value, output gradient, MSE/CICFM dimension helpers.</td>
+          </tr>
+          <tr>
+            <td><code>test_cicfm</code></td>
+            <td>Deterministic <code>zt</code>, <code>target_velocity</code>, and CICFM input dimension.</td>
+          </tr>
+          <tr>
+            <td><code>test_mlp_backward</code></td>
+            <td>Manual backward math with finite-difference checks.</td>
+          </tr>
+          <tr>
+            <td><code>test_training_debug</code></td>
+            <td>Tiny MSE overfit, deterministic CICFM overfit, and finite random CICFM step.</td>
+          </tr>
+          <tr>
+            <td><code>test_train_step</code></td>
+            <td><code>LossMode</code> dispatch, wrong-dimension rejection, and CICFM target-velocity selection.</td>
+          </tr>
+          <tr>
+            <td><code>test_full_size_baseline</code></td>
+            <td>Width-256 MSE and CICFM finite train steps with frozen <code>F = 8</code> dimensions.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>End-to-End Dependency Flow</h2>
+      <pre><code>Tensor
+  -> CoordinateBatch
+  -> FourierEmbedding
+  -> features
+  -> trainStep
+       -> LossMode::MSE uses features + targets
+       -> LossMode::CICFM uses CicfmBatch input + target_velocity
+       -> mlpForward
+       -> mseLossAndGradient
+       -> mlpBackward
+       -> sgdStep
+       -> TrainStepResult debug stats
+  -> tests validate each boundary</code></pre>
+
+      <h2>CPU and CUDA Boundary</h2>
+      <p>
+        The current trainable baseline runs on CPU. CUDA is present for the
+        coordinate/Fourier embedding kernel path, but the MLP, loss, CICFM
+        assembly, backward pass, and SGD update are not CUDA kernels yet.
+      </p>
+
+      <div class="warning">
+        Best next CUDA step: parity-test the final model input contract
+        <code>concat(raw coordinates, Fourier features, zt, t)</code> across
+        CPU and CUDA embedding paths before implementing CUDA MLP kernels.
+      </div>
+
+      <h2>Quick Reading Order</h2>
+      <ol>
+        <li>Start with <code>include/training/train_step.h</code> to see the public end-to-end API.</li>
+        <li>Read <code>src/training/train_step.cpp</code> to see how MSE and CICFM split.</li>
+        <li>Read <code>src/training/cicfm.cpp</code> to understand <code>zt</code> and <code>target_velocity</code>.</li>
+        <li>Read <code>src/model/mlp.cpp</code> to understand forward/backward.</li>
+        <li>Read <code>tests/test_train_step.cpp</code> and <code>tests/test_full_size_baseline.cpp</code> to see the contract enforced.</li>
+      </ol>
+    </main>
+  </body>
+</html>
