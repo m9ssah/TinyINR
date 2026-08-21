@@ -71,6 +71,7 @@ if(CMAKE_CUDA_COMPILER)
     add_library(kernels STATIC
         src/kernels/coordinate_embedding.cu
         src/kernels/silu.cu
+        src/kernels/linear.cu
     )
     target_include_directories(kernels PUBLIC src/kernels)
 
