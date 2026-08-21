@@ -11,7 +11,7 @@ __global__ void linear_forward_kernel(const float *d_input,
     int o = idx % out_dim; // output dimension index
     float sum = 0.0f;
     sum = d_bias[o];
-    for (int i = 0; i < in_dim; ++i) {
+    for (int i = 0; i < in_dim; i++) {
       sum += d_input[r * in_dim + i] * d_weight[o * in_dim + i];
     }
     d_output[r * out_dim + o] = sum;
