@@ -70,6 +70,7 @@ if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:
     add_library(kernels STATIC
         src/kernels/coordinate_embedding.cu
+        src/kernels/silu.cu
     )
     target_include_directories(kernels PUBLIC src/kernels)
 
@@ -85,6 +86,12 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(test_cpu_cuda_parity PRIVATE kernels)
     target_include_directories(test_cpu_cuda_parity PRIVATE src/kernels)
+
+    add_executable(test_silu_cuda
+        tests/test_silu.cu
+    )
+    target_link_libraries(test_silu_cuda PRIVATE kernels tinyinr_core)
+    target_include_directories(test_silu_cuda PRIVATE src/kernels)
 
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding
