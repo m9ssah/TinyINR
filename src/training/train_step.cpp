@@ -1,8 +1,6 @@
 #include "training/train_step.h"
 
 #include <stdexcept>
-#include <string>
-#include <vector>
 
 namespace {
 
@@ -36,8 +34,8 @@ Tensor makeRandomTime(const Tensor &targets, uint32_t seed) {
 }
 
 CicfmBatch makeConfiguredCicfmBatch(const Tensor &features,
-                                   const Tensor &targets,
-                                   const TrainStepConfig &config) {
+                                    const Tensor &targets,
+                                    const TrainStepConfig &config) {
   if (config.deterministic_cicfm) {
     return makeDeterministicCicfmBatch(features, targets);
   }
@@ -67,9 +65,8 @@ TrainStepResult trainStep(Mlp &model, const Tensor &features,
   } else if (config.loss_mode == LossMode::CICFM) {
     const int64_t expected_feature_dim =
         mseInputDim(config.coord_dim, config.num_frequencies);
-    const int64_t expected_input_dim =
-        cicfmInputDim(config.coord_dim, config.value_dim,
-                      config.num_frequencies);
+    const int64_t expected_input_dim = cicfmInputDim(
+        config.coord_dim, config.value_dim, config.num_frequencies);
     if (features.shape()[2] != expected_feature_dim ||
         model.config.input_dim != expected_input_dim) {
       throw std::invalid_argument("CICFM input dimension mismatch");
@@ -103,6 +100,7 @@ TrainStepResult trainStep(Mlp &model, const Tensor &features,
     throw std::runtime_error("non-finite train-step parameter");
   }
 
-  return TrainStepResult{loss.loss, model_input, forward.output, loss_target,
-                         loss.output_gradient, output_stats, gradient_stats};
+  return TrainStepResult{loss.loss,     model_input,          forward.output,
+                         loss_target,   loss.output_gradient, output_stats,
+                         gradient_stats};
 }

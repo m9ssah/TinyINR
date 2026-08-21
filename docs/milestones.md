@@ -29,9 +29,16 @@ Gradient Descent
 ```
 
 ## Week 4
-- [ ] port fourier coordinate embedding to CUDA
-- [ ] prove kernel accelerates performance
-- [ ] 
+- [x] port fourier coordinate embedding to CUDA
+- [X] prove kernel accelerates performance
+
+# Week 5 (MASSAH)
+- [ ] wire CoordinateBatch into minibatch training
+- [ ] implement uniform coordinate sampling cleanly
+- [ ] make sure coordinatess and targets stay aligned after sampling
+- [ ] write the training loop driver
+- [ ] log loss, coverage, and sample counts
+- [ ] extend benchmark from embedding only to end-to-end train-step timing
 
 ```
 Your tasks:
