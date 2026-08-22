@@ -71,7 +71,8 @@ if(CMAKE_CUDA_COMPILER)
     add_library(kernels STATIC
         src/kernels/coordinate_embedding.cu
         src/kernels/silu.cu
-        src/kernels/linear.cu
+        src/kernels/linear_forward.cu
+        src/kernels/linear_backward.cu
         src/kernels/mlp_forward.cu
         src/kernels/mse.cu
     )
