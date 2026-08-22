@@ -69,3 +69,21 @@ inline bool check_parity(const float *cpu_out, const float *gpu_out, int count,
   printf("[PARITY PASS] max absolute error = %e\n", max_err);
   return true;
 }
+
+inline bool check_parity_rel(const float *cpu_out, const float *gpu_out,
+                             int count, float rel, float abs_tol = 1e-5f) {
+  double max_err = 0.0;
+  for (int i = 0; i < count; i++) {
+    double diff = fabs((double)cpu_out[i] - (double)gpu_out[i]);
+    double tol = abs_tol + rel * fabs((double)cpu_out[i]);
+    if (diff > max_err)
+      max_err = diff;
+    if (diff > tol) {
+      fprintf(stderr, "[PARITY REL FAIL] index %d: cpu=%f  gpu=%f  diff=%e\n",
+              i, cpu_out[i], gpu_out[i], diff);
+      return false;
+    }
+  }
+  printf("[PARITY REL PASS] max absolute error = %e\n", max_err);
+  return true;
+}

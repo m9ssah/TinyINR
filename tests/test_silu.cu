@@ -46,6 +46,6 @@ int main() {
   }
   run_case(random_input, "random");
 
-  std::cout << "test_silu PASS\n";
+  std::cout << "test_silu_cuda PASS\n";
   return 0;
 }

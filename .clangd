@@ -1,0 +1,11 @@
+CompileFlags:
+  Add:
+    - -xcuda
+    - --cuda-path=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.2
+    - --no-cuda-version-check
+    - --cuda-gpu-arch=sm_75
+    - -IC:/Users/massah/Documents/GitHub/TinyINR/include
+    - -IC:/Users/massah/Documents/GitHub/TinyINR/src/kernels
+Diagnostics:
+  Suppress:
+    - drv_unknown_argument

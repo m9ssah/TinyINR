@@ -71,8 +71,11 @@ if(CMAKE_CUDA_COMPILER)
     add_library(kernels STATIC
         src/kernels/coordinate_embedding.cu
         src/kernels/silu.cu
+        src/kernels/linear.cu
+        src/kernels/mlp_forward.cu
     )
     target_include_directories(kernels PUBLIC src/kernels)
+    target_link_libraries(kernels PUBLIC tinyinr_core)
 
     # CUDA tests:
     add_executable(test_fourier_embedding_cuda
@@ -92,6 +95,12 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(test_silu_cuda PRIVATE kernels tinyinr_core)
     target_include_directories(test_silu_cuda PRIVATE src/kernels)
+
+    add_executable(test_mlp_forward_cuda
+        tests/test_mlp_forward.cu
+    )
+    target_link_libraries(test_mlp_forward_cuda PRIVATE kernels tinyinr_core)
+    target_include_directories(test_mlp_forward_cuda PRIVATE src/kernels)
 
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding
