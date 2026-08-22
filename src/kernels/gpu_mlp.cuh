@@ -95,3 +95,14 @@ inline void freeForwardCache(GpuForwardCache &cache) {
   }
   cudaFree(cache.output);
 }
+
+inline void gpuZeroGrad(GpuMlp &gpu) {
+  int n = sizeof(gpu.layers) / sizeof(gpu.layers[0]);
+  for (int i = 0; i < n; i++) {
+    const GpuLinearLayer &layer = gpu.layers[i];
+    const size_t w_count = static_cast<size_t>(layer.in_dim) * layer.out_dim;
+    const size_t b_count = static_cast<size_t>(layer.out_dim);
+    CUDA_CHECK(cudaMemset(layer.grad_weight, 0, w_count * sizeof(float)));
+    CUDA_CHECK(cudaMemset(layer.grad_bias, 0, b_count * sizeof(float)));
+  }
+}

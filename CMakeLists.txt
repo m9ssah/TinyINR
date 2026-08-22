@@ -75,6 +75,7 @@ if(CMAKE_CUDA_COMPILER)
         src/kernels/linear_backward.cu
         src/kernels/mlp_forward.cu
         src/kernels/mse.cu
+        src/kernels/sgd.cu
     )
     target_include_directories(kernels PUBLIC src/kernels)
     target_link_libraries(kernels PUBLIC tinyinr_core)
