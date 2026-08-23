@@ -72,6 +72,13 @@ struct GpuForwardCache {
   float *pre_activation[3];
   float *activation[3];
   float *output; // [row, output_dim]
+
+  // grad_output receives dL/dOutput from mse_grad, grad_a and grad_z carry 
+  // upstream gradient back through the hidden layers.
+  float *grad_output; // [rows, output_dim]
+  float *grad_a;      // [rows, hidden_width]
+  float *grad_z;      // [rows, hidden_width]
+
   int rows;
 };
 
@@ -84,6 +91,9 @@ inline GpuForwardCache allocForwardCache(const MlpConfig &config, int rows) {
     cache.activation[i] = cuda_alloc(rows * config.hidden_width);
   }
   cache.output = cuda_alloc(rows * config.output_dim);
+  cache.grad_output = cuda_alloc(rows * config.output_dim);
+  cache.grad_a = cuda_alloc(rows * config.hidden_width);
+  cache.grad_z = cuda_alloc(rows * config.hidden_width);
   return cache;
 }
 
@@ -94,6 +104,9 @@ inline void freeForwardCache(GpuForwardCache &cache) {
     cudaFree(cache.activation[i]);
   }
   cudaFree(cache.output);
+  cudaFree(cache.grad_output);
+  cudaFree(cache.grad_a);
+  cudaFree(cache.grad_z);
 }
 
 inline void gpuZeroGrad(GpuMlp &gpu) {
