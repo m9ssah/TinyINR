@@ -77,6 +77,8 @@ if(CMAKE_CUDA_COMPILER)
         src/kernels/mse.cu
         src/kernels/sgd.cu
         src/kernels/mlp_backward.cu
+        src/kernels/cicfm.cu
+        src/kernels/train_step.cu
     )
     target_include_directories(kernels PUBLIC src/kernels)
     target_link_libraries(kernels PUBLIC tinyinr_core)
@@ -117,6 +119,12 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(test_mlp_backward_cuda PRIVATE kernels tinyinr_core)
     target_include_directories(test_mlp_backward_cuda PRIVATE src/kernels)
+
+    add_executable(test_train_step_cuda
+        tests/test_train_step_cuda.cu
+    )
+    target_link_libraries(test_train_step_cuda PRIVATE kernels tinyinr_core)
+    target_include_directories(test_train_step_cuda PRIVATE src/kernels)
 
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding

@@ -32,9 +32,9 @@ static void run_case(const std::vector<float> &output,
   CUDA_CHECK(cudaMemset(d_loss, 0, sizeof(float)));
 
   const int blocks = compute_grid_size(n);
-  mse_loss<<<blocks, THREADS_PER_BLOCK>>>(d_output, d_target, d_loss, n);
+  mse_loss_kernel<<<blocks, THREADS_PER_BLOCK>>>(d_output, d_target, d_loss, n);
   CUDA_CHECK_LAST_ERROR();
-  mse_grad<<<blocks, THREADS_PER_BLOCK>>>(d_output, d_target, d_grad, n);
+  mse_grad_kernel<<<blocks, THREADS_PER_BLOCK>>>(d_output, d_target, d_grad, n);
   CUDA_CHECK_LAST_ERROR();
   CUDA_CHECK(cudaDeviceSynchronize());
 
