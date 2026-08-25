@@ -120,6 +120,12 @@ if(CMAKE_CUDA_COMPILER)
     target_link_libraries(test_mlp_backward_cuda PRIVATE kernels tinyinr_core)
     target_include_directories(test_mlp_backward_cuda PRIVATE src/kernels)
 
+    add_executable(test_train_step_cuda
+        tests/test_train_step_cuda.cu
+    )
+    target_link_libraries(test_train_step_cuda PRIVATE kernels tinyinr_core)
+    target_include_directories(test_train_step_cuda PRIVATE src/kernels)
+
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding
         benchmarks/bench_coordinate_embedding.cu
