@@ -139,9 +139,10 @@ struct TrainCsvWriter {
     file << benchmark_name << "," << loss_mode << "," << device << ","
          << batch_size << "," << num_points << "," << feature_dim << ","
          << input_dim << "," << output_dim << "," << fourier_frequencies << ","
-         << forward_ms << "," << loss_ms << "," << backward_ms << "," << step_ms
-         << "," << mean_loss << "," << all_finite << "," << cicfm_assembly_ms
-         << "," << mean_t << "," << mean_abs_target_velocity << "\n";
+         << field(forward_ms) << "," << field(loss_ms) << ","
+         << field(backward_ms) << "," << field(step_ms) << "," << mean_loss
+         << "," << all_finite << "," << field(cicfm_assembly_ms) << ","
+         << field(mean_t) << "," << field(mean_abs_target_velocity) << "\n";
   }
 
   ~TrainCsvWriter() {
