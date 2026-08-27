@@ -10,33 +10,6 @@
 
 #include "../src/kernels/cuda_utils.cuh"
 
-struct GpuTimer {
-  cudaEvent_t t_start, t_stop;
-
-  GpuTimer() {
-    CUDA_CHECK(cudaEventCreate(&t_start));
-    CUDA_CHECK(cudaEventCreate(&t_stop));
-  }
-
-  ~GpuTimer() {
-    cudaEventDestroy(t_start);
-    cudaEventDestroy(t_stop);
-  }
-
-  void start() { CUDA_CHECK(cudaEventRecord(t_start)); }
-
-  void stop() {
-    CUDA_CHECK(cudaEventRecord(t_stop));
-    CUDA_CHECK(cudaEventSynchronize(t_stop));
-  }
-
-  float elapsed_ms() const {
-    float ms = 0.0f;
-    CUDA_CHECK(cudaEventElapsedTime(&ms, t_start, t_stop));
-    return ms;
-  }
-};
-
 struct CpuTimer {
   std::chrono::steady_clock::time_point t_start, t_stop;
 
@@ -127,6 +100,46 @@ struct CsvWriter {
   }
 
   ~CsvWriter() {
+    if (file.is_open())
+      file.close();
+  }
+};
+
+struct TrainCsvWriter {
+  std::ofstream file;
+
+  explicit TrainCsvWriter(const std::string &path) {
+
+    file.open(path, std::ios::out | std::ios::trunc);
+    if (!file.is_open()) {
+      fprintf(stderr, "[CSV ERROR] Could not open %s for writing\n",
+              path.c_str());
+      exit(EXIT_FAILURE);
+    }
+
+    // file header
+    file << "benchmark_name,loss_mode,device,batch_size,num_points,feature_dim,"
+            "input_dim,output_dim,fourier_frequencies,forward_ms,loss_ms,"
+            "backward_ms,step_ms,mean_loss,all_finite,cicfm_assembly_ms,mean_t,"
+            "mean_abs_target_velocity\n";
+  }
+
+  void write_row(const std::string &benchmark_name,
+                 const std::string &loss_mode, const std::string &device,
+                 int batch_size, int num_points, int feature_dim, int input_dim,
+                 int output_dim, int fourier_frequencies, float forward_ms,
+                 float loss_ms, float backward_ms, float step_ms,
+                 float mean_loss, bool all_finite, float cicfm_assembly_ms,
+                 float mean_t, float mean_abs_target_velocity) {
+    file << benchmark_name << "," << loss_mode << "," << device << ","
+         << batch_size << "," << num_points << "," << feature_dim << ","
+         << input_dim << "," << output_dim << "," << fourier_frequencies << ","
+         << forward_ms << "," << loss_ms << "," << backward_ms << "," << step_ms
+         << "," << mean_loss << "," << all_finite << "," << cicfm_assembly_ms
+         << "," << mean_t << "," << mean_abs_target_velocity << "\n";
+  }
+
+  ~TrainCsvWriter() {
     if (file.is_open())
       file.close();
   }
