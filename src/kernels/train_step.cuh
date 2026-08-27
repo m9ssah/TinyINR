@@ -27,9 +27,9 @@ struct StageTimings {
   float forward_ms;
   float loss_ms;     // mse_loss + mse_grad kernels
   float backward_ms; // gpuMlpBackward
-  float step_ms;     // puTrainStep
+  float step_ms;     // gpuTrainStep
 };
 
 float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
                    const Tensor &targets, const Tensor *z0, const Tensor *t,
-                   float lr);
+                   float lr, StageTimings *timings = nullptr);

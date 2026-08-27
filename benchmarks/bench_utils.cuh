@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -107,6 +108,10 @@ struct CsvWriter {
 
 struct TrainCsvWriter {
   std::ofstream file;
+
+  static std::string field(float v) {
+    return std::isnan(v) ? std::string() : std::to_string(v);
+  }
 
   explicit TrainCsvWriter(const std::string &path) {
 

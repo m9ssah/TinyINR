@@ -41,9 +41,15 @@ void freeGpuTrainContext(GpuTrainContext &ctx) {
 
 float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
                    const Tensor &targets, const Tensor *z0, const Tensor *t,
-                   float lr) {
+                   float lr, StageTimings *timings) {
   const int rows = ctx.rows;
   const int out_count = rows * ctx.channels;
+
+  GpuTimer step_timer, stage_timer;
+  if (timings) {
+    *timings = StageTimings{};
+    step_timer.start();
+  }
 
   cuda_h2d(ctx.d_targets, targets.data(), static_cast<size_t>(out_count));
 
@@ -57,10 +63,16 @@ float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
     cuda_h2d(ctx.d_z0, z0->data(), static_cast<size_t>(out_count));
     cuda_h2d(ctx.d_t, t->data(), static_cast<size_t>(rows));
 
+    if (timings)
+      stage_timer.start();
     cicfm_assembly_kernel<<<compute_grid_size(rows), THREADS_PER_BLOCK>>>(
         ctx.d_features, ctx.d_z0, ctx.d_targets, ctx.d_t, ctx.d_zt,
         ctx.d_velocity, ctx.cache.input, rows, ctx.feature_dim, ctx.channels);
     CUDA_CHECK_LAST_ERROR();
+    if (timings) {
+      stage_timer.stop();
+      timings->assembly_ms = stage_timer.elapsed_ms();
+    }
 
     loss_target = ctx.d_velocity;
   } else {
@@ -71,7 +83,15 @@ float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
   }
 
   gpuZeroGrad(ctx.mlp);
+
+  if (timings)
+    stage_timer.start();
   gpuMlpForward(ctx.mlp, ctx.cache);
+  if (timings) {
+    stage_timer.stop();
+    timings->forward_ms = stage_timer.elapsed_ms();
+    stage_timer.start();
+  }
 
   CUDA_CHECK(cudaMemset(ctx.d_loss, 0, sizeof(float)));
   mse_loss_kernel<<<compute_grid_size(out_count), THREADS_PER_BLOCK>>>(
@@ -80,11 +100,25 @@ float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
   mse_grad_kernel<<<compute_grid_size(out_count), THREADS_PER_BLOCK>>>(
       ctx.cache.output, loss_target, ctx.cache.grad_output, out_count);
   CUDA_CHECK_LAST_ERROR();
+  if (timings) {
+    stage_timer.stop();
+    timings->loss_ms = stage_timer.elapsed_ms();
+    stage_timer.start();
+  }
 
   gpuMlpBackward(ctx.mlp, ctx.cache);
+  if (timings) {
+    stage_timer.stop();
+    timings->backward_ms = stage_timer.elapsed_ms();
+  }
+
   gpuSgdStep(ctx.mlp, lr);
 
   float loss_sum = 0.0f;
   cuda_d2h(&loss_sum, ctx.d_loss, 1);
+  if (timings) {
+    step_timer.stop();
+    timings->step_ms = step_timer.elapsed_ms();
+  }
   return loss_sum / static_cast<float>(out_count);
 }
