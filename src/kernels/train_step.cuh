@@ -22,6 +22,14 @@ GpuTrainContext createGpuTrainContext(const Mlp &model, const MlpConfig &config,
 
 void freeGpuTrainContext(GpuTrainContext &ctx);
 
+struct StageTimings {
+  float assembly_ms; // CICFM only; 0 for MSE
+  float forward_ms;
+  float loss_ms;     // mse_loss + mse_grad kernels
+  float backward_ms; // gpuMlpBackward
+  float step_ms;     // puTrainStep
+};
+
 float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
                    const Tensor &targets, const Tensor *z0, const Tensor *t,
                    float lr);

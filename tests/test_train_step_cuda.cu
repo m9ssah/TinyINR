@@ -69,7 +69,7 @@ void run_mode(LossMode mode, const char *name) {
       createGpuTrainContext(gpu_model, config, kRows, kFeatureDim, kChannels);
 
   std::cout << name << "\n";
-  for (int step = 0; step < kSteps; ++step) {
+  for (int step = 0; step < kSteps; step++) {
     TrainStepResult cpu = trainStep(cpu_model, features, targets, cpu_config);
     float gpu_loss =
         gpuTrainStep(ctx, mode, features, targets, cicfm ? &z0 : nullptr,

@@ -138,4 +138,10 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(benchmark_cpu_embedding PRIVATE kernels)
     target_include_directories(benchmark_cpu_embedding PRIVATE src/kernels)
+
+    add_executable(bench_train_step
+        benchmarks/bench_train_step.cu
+    )
+    target_link_libraries(bench_train_step PRIVATE kernels)
+    target_include_directories(bench_train_step PRIVATE src/kernels)
 endif()
