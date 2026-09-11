@@ -5,6 +5,7 @@ import { MathDisclosure } from "@/components/MathDisclosure";
 import { SiteLayout } from "@/components/SiteLayout";
 import { getPost, posts } from "@/data/posts";
 import { FlowMatchingPostBody } from "./flow-matching";
+import { CICFMBody } from "./CICFM";
 import { MilestoneOnePostBody } from "./milestone-one";
 import { MilestoneTwoPostBody } from "./milestone-two";
 
@@ -102,6 +103,8 @@ export default async function PostPage({ params }: PostPageProps) {
 
             {slug === "what-is-flow-matching" ? (
               <FlowMatchingPostBody />
+            ) : slug === "cicfm-as-loss" ? (
+              <CICFMBody />
             ) : slug === "milestone-1-tensor-coordinate-fourier" ? (
               <MilestoneOnePostBody />
             ) : slug === "milestone-2-cuda-coordinate-benchmark" ? (

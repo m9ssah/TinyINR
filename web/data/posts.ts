@@ -10,13 +10,21 @@ export interface PostMeta {
 
 export const posts: PostMeta[] = [
   {
+    slug: "cicfm-as-loss",
+    title: "CICFM as Loss",
+    excerpt: "What is CICFM? Why do we use it for flow matching?",
+    date: "2026-09-11",
+    readTime: "mind read",
+    tags: ["CICFM", "Flow Matching", "Loss Function"],
+    featured: true,
+  },
+  {
     slug: "what-is-flow-matching",
     title: "What is Flow Matching?",
     excerpt: "An intuitive introduction to flow matching",
     date: "2026-07-08",
     readTime: "6 min read",
     tags: ["Flow Matching", "Velocity Fields"],
-    featured: true,
   },
   {
     slug: "milestone-2-cuda-coordinate-benchmark",
