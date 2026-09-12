@@ -14,17 +14,9 @@ export const posts: PostMeta[] = [
     title: "CICFM as Loss",
     excerpt: "What is CICFM? Why do we use it for flow matching?",
     date: "2026-09-11",
-    readTime: "mind read",
+    readTime: "4 min read",
     tags: ["CICFM", "Flow Matching", "Loss Function"],
     featured: true,
-  },
-  {
-    slug: "what-is-flow-matching",
-    title: "What is Flow Matching?",
-    excerpt: "An intuitive introduction to flow matching",
-    date: "2026-07-08",
-    readTime: "6 min read",
-    tags: ["Flow Matching", "Velocity Fields"],
   },
   {
     slug: "milestone-2-cuda-coordinate-benchmark",
@@ -42,6 +34,14 @@ export const posts: PostMeta[] = [
     date: "2026-07-09",
     readTime: "6 min read",
     tags: ["Tensor", "CoordinateBatch", "Fourier"],
+  },
+  {
+    slug: "what-is-flow-matching",
+    title: "What is Flow Matching?",
+    excerpt: "An intuitive introduction to flow matching",
+    date: "2026-07-08",
+    readTime: "6 min read",
+    tags: ["Flow Matching", "Velocity Fields"],
   },
 ];
 

@@ -1,11 +1,13 @@
 import { KatexBlock } from "@/components/KatexBlock";
-import { KatexInline } from "@/components/KatexInline";
 
 export function CICFMBody() {
     return (
         <>
             <p>
-                If you are unsure of what flow matching really is, I recommend checking out our last blog: <a href="https://tiny-inr.vercel.app/post/what-is-flow-matching">"What is Flow Matching?"</a>
+                If you are unsure of what flow matching really is, I recommend checking out our last blog: <a href="https://tiny-inr.vercel.app/post/what-is-flow-matching" target="_blank"
+                    rel="noreferrer"
+                    className="text-accent underline decoration-accent/40 underline-offset-4 transition-colors hover:decoration-accent"
+                >"What is Flow Matching?"</a>
                 This post assumes the reader knows that a flow matching model's learning objective is to nudge noise toward data, step by step.
             </p>
 
@@ -57,7 +59,50 @@ export function CICFMBody() {
             <p>
                 More formally, <strong>Conditionally Indepedendent Continuous Flow Matching</strong> loss offers a specialized training objective used in continuous normalizing flows and generative models
                 where spatial, temporal, or coordinate-wise components are modelled as conditionally independent given a latent context variable <em>z</em>.
+                It minimizes the expected L2 error over time <em>t</em>, the function distribution <code>q(f)</code>, and noise <em>ε</em>:
             </p>
+
+            <KatexBlock expression="\mathcal{L}_{\text{CICFM}}=\mathbb{E}_{t, f,\epsilon }\left[||v_{\theta }(x_{f_{t}},y_{f_{t}},t|z_{f_{t}})-u_{t}(x_{f},y_{f}|\epsilon )||_{2}^{2}\right]" />
+
+            <p>
+                This formulation enables a single loss function to sidestep multiple chokepoints that make standard flow-matching setups difficult to scale across data domains.
+            </p>
+
+
+            <h2>
+                Buillding the Context Variable <em>z</em>
+            </h2>
+            <p>
+                One question still hangs: how do we build <em>z</em>?
+            </p>
+
+            <p>
+                As stated earlier, the model never lets a point make its prediction in total isolation. Before any individual coordinate-value pair gets its velocity guess,
+                the model first takes a sample of coordinate-value pairs from across the whole function and compresses them down into one compact summary vector <em>z</em>. Picture it as a quick, low-resolution
+                gist of the entire shape, image, or structure.
+            </p>
+
+            <p>
+                Every point-wise prediction is then made independently, but conditioned on that same shared z.
+                In effect, each point is asks the following: "How should I look like at my current position, given the gist of my full shape?"
+                Therefore, predictions to remain independent (cheap and resolution-agnostic), but lose the blindness chokepoint, because they all share the same compressed view of the big picture through <em>z</em>.
+            </p>
+
+            <p>
+                If you are interested in the mathematical details of how this is done, check out "Further Readings" below.
+            </p>
+
+            <h2>
+                Further Readings
+            </h2>
+            <a
+                href="https://arxiv.org/abs/2107.14795"
+                target="_blank"
+                rel="noreferrer"
+                className="text-accent underline decoration-accent/40 underline-offset-4 transition-colors hover:decoration-accent"
+            >
+                Perceiver IO
+            </a>
         </>
     )
 
