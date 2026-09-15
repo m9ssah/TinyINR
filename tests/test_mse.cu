@@ -7,8 +7,8 @@
 
 #include "training/loss.h"
 
-#include "cuda_utils.cuh"
-#include "mse.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/mse.cuh"
 
 static void run_case(const std::vector<float> &output,
                      const std::vector<float> &target, const char *name) {

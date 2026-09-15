@@ -1,7 +1,8 @@
-#include "cuda_utils.cuh"
-#include "sgd.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/sgd.cuh"
 
-__global__ void sgd_kernel(float *d_param, const float *d_grad, float lr, int n) {
+__global__ void sgd_kernel(float *d_param, const float *d_grad, float lr,
+                           int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx < n) {

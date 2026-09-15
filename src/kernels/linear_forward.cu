@@ -1,4 +1,4 @@
-#include "linear.cuh"
+#include "kernel/linear.cuh"
 
 __global__ void linear_forward_kernel(const float *d_input,
                                       const float *d_weight,

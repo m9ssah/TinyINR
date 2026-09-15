@@ -1,8 +1,8 @@
-#include "mlp_backward.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/linear.cuh"
+#include "kernel/mlp_backward.cuh"
+#include "kernel/silu.cuh"
 
-#include "cuda_utils.cuh"
-#include "linear.cuh"
-#include "silu.cuh"
 
 void gpuMlpBackward(const GpuMlp &mlp, const GpuForwardCache &cache) {
   const int rows = cache.rows;

@@ -1,13 +1,13 @@
-#include "train_step.cuh"
+#include "kernel/train_step.cuh"
 
 #include <cassert>
 
-#include "cicfm.cuh"
-#include "cuda_utils.cuh"
-#include "mlp_backward.cuh"
-#include "mlp_forward.cuh"
-#include "mse.cuh"
-#include "sgd.cuh"
+#include "kernel/cicfm.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/mlp_backward.cuh"
+#include "kernel/mlp_forward.cuh"
+#include "kernel/mse.cuh"
+#include "kernel/sgd.cuh"
 
 GpuTrainContext createGpuTrainContext(const Mlp &model, const MlpConfig &config,
                                       int rows, int feature_dim, int channels) {

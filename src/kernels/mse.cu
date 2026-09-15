@@ -1,9 +1,9 @@
-#include "cuda_utils.cuh"
-#include "mse.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/mse.cuh"
 #include <math.h>
 
 __global__ void mse_grad_kernel(const float *d_output, const float *d_target,
-                         float *d_grad, int n) {
+                                float *d_grad, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx < n) {
@@ -12,7 +12,7 @@ __global__ void mse_grad_kernel(const float *d_output, const float *d_target,
 }
 
 __global__ void mse_loss_kernel(const float *d_output, const float *d_target,
-                         float *d_loss, int n) {
+                                float *d_loss, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   int tid = threadIdx.x;
 

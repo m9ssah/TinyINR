@@ -9,8 +9,8 @@
 #include "training/loss.h"
 #include "training/train_step.h"
 
-#include "cuda_utils.cuh"
-#include "train_step.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/train_step.cuh"
 
 namespace {
 
