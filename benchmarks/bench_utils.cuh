@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "../src/kernels/cuda_utils.cuh"
+#include "kernel/cuda_utils.cuh"
 
 struct CpuTimer {
   std::chrono::steady_clock::time_point t_start, t_stop;
