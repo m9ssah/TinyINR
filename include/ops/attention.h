@@ -1,6 +1,8 @@
 #pragma once
 
+#include "ops/coordinate_batch.h"
 #include "tensor.h"
+
 
 /* shapes & math ref:
   Q        = CoordinateFeatures @ W_q                    [B, N, D_model]
@@ -34,9 +36,13 @@ struct AttentionInputs {
   Tensor latents;  // [B, L, latent_dim] (kv source)
 };
 
+// generic cross-attention
 Tensor attention(const AttentionWeights &weights, const AttentionInputs &inputs,
                  const AttentionConfig &config);
 
+// cross-attention with CoordinateBatch's raw coordinates as queries instead of
+// an embedded feature tensor. config.input_dim must equal batch.coord_dim()
 Tensor latent_to_coordinate_attention(const AttentionWeights &weights,
-                                      const AttentionInputs &inputs,
+                                      const CoordinateBatch &batch,
+                                      const Tensor &latents,
                                       const AttentionConfig &config);
