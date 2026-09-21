@@ -3,7 +3,6 @@
 #include "ops/coordinate_batch.h"
 #include "tensor.h"
 
-
 /* shapes & math ref:
   Q        = CoordinateFeatures @ W_q                    [B, N, D_model]
   [K | V]  = Latents @ W_kv                              [B, L, 2 * D_model]
@@ -29,6 +28,8 @@ struct AttentionWeights {
   Tensor b_Q;  // [latent_dim]
   Tensor w_KV; // [latent_dim, 2 * latent_dim]
   Tensor b_KV; // [2 * latent_dim]
+  Tensor w_O;  // [latent_dim, latent_dim]
+  Tensor b_O;  // [latent_dim]
 };
 
 struct AttentionInputs {
