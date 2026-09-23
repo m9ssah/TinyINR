@@ -20,6 +20,7 @@
  * This class is intentionally narrow: CPU float32 only, no autograd, no GPU
  * memory, and no general broadcasting. It is the stable foundation that
  * CoordinateBatch and FourierEmbedding build on.
+ * TODO: expand to gpu memory and autograd
  */
 class Tensor {
 public:

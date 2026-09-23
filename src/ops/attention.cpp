@@ -1,3 +1,7 @@
+/*
+classic multi-head attention (attention is all you need)
+*/
+
 #include "ops/attention.h"
 
 #include <algorithm>
@@ -64,7 +68,7 @@ Tensor attention(const AttentionWeights &weights, const AttentionInputs &inputs,
   Tensor output({batch_size, num_points, d_model}); // output
 
   for (int64_t b = 0; b < batch_size; b++) {
-    // Q projection
+    // Q projection (queries = features @ W_q + b_q)
     for (int64_t n = 0; n < num_points; n++) {
       for (int64_t d = 0; d < d_model; d++) {
         float value = weights.b_Q.at({d});
@@ -74,7 +78,7 @@ Tensor attention(const AttentionWeights &weights, const AttentionInputs &inputs,
         queries.at({b, n, d}) = value;
       }
     }
-    // fused KV projection
+    // fused KV projection (kv = latents @ W_kv + b_kv)
     for (int64_t l = 0; l < num_latents; l++) {
       for (int64_t d = 0; d < 2 * d_model; d++) {
         float value = weights.b_KV.at({d});
