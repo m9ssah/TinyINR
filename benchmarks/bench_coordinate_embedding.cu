@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../src/kernels/coordinate_embedding.cuh"
+#include "kernel/coordinate_embedding.cuh"
 #include "bench_utils.cuh"
 
 // benchmark config

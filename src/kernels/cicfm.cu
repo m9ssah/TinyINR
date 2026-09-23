@@ -1,4 +1,4 @@
-#include "cicfm.cuh"
+#include "kernel/cicfm.cuh"
 
 __global__ void cicfm_assembly_kernel(const float *d_features,
                                       const float *d_z0, const float *d_z1,

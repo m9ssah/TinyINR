@@ -1,7 +1,9 @@
-#include "cuda_utils.cuh"
-#include "sgd.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/linear.cuh"
+#include "kernel/sgd.cuh"
 
-__global__ void sgd_kernel(float *d_param, const float *d_grad, float lr, int n) {
+__global__ void sgd_kernel(float *d_param, const float *d_grad, float lr,
+                           int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx < n) {
@@ -18,6 +20,10 @@ void gpuSgdStep(GpuMlp &gpu_mlp, float lr) {
 
     sgd_kernel<<<compute_grid_size(w_count), THREADS_PER_BLOCK>>>(
         layer.weight, layer.grad_weight, lr, w_count);
+    CUDA_CHECK_LAST_ERROR();
+
+    transpose_weight_kernel<<<compute_grid_size(w_count), THREADS_PER_BLOCK>>>(
+        layer.weight, layer.weight_T, layer.in_dim, layer.out_dim);
     CUDA_CHECK_LAST_ERROR();
 
     sgd_kernel<<<compute_grid_size(b_count), THREADS_PER_BLOCK>>>(

@@ -5,8 +5,8 @@
 #include <random>
 #include <vector>
 
-#include "../src/kernels/coordinate_embedding.cuh"
-#include "../src/kernels/cuda_utils.cuh"
+#include "kernel/coordinate_embedding.cuh"
+#include "kernel/cuda_utils.cuh"
 
 struct Case {
   int B;

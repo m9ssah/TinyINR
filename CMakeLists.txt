@@ -10,6 +10,9 @@ if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
     set(CMAKE_CUDA_STANDARD 14)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+        set(CMAKE_CUDA_ARCHITECTURES native)
+    endif()
 endif()
 
 
@@ -17,6 +20,7 @@ add_library(tinyinr_core STATIC
     src/tensor.cpp
     src/model/mlp.cpp
     src/ops/coordinate_batch.cpp
+    src/ops/attention.cpp
     src/ops/fourier_embedding_raw.cpp
     src/ops/fourier_embedding.cpp
     src/training/cicfm.cpp
@@ -30,6 +34,11 @@ add_executable(test_fourier_embedding_tensor
     tests/test_fourier_embedding_tensor.cpp
 )
 target_link_libraries(test_fourier_embedding_tensor PRIVATE tinyinr_core)
+
+add_executable(test_attention
+    tests/test_attention.cpp
+)
+target_link_libraries(test_attention PRIVATE tinyinr_core)
 
 add_executable(test_mlp_forward
     tests/test_mlp_forward.cpp
