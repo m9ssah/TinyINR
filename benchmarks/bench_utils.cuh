@@ -126,7 +126,7 @@ struct TrainCsvWriter {
     file << "benchmark_name,loss_mode,device,batch_size,num_points,feature_dim,"
             "input_dim,output_dim,fourier_frequencies,forward_ms,loss_ms,"
             "backward_ms,step_ms,mean_loss,all_finite,cicfm_assembly_ms,mean_t,"
-            "mean_abs_target_velocity\n";
+            "mean_abs_target_velocity,trials\n";
   }
 
   void write_row(const std::string &benchmark_name,
@@ -135,14 +135,15 @@ struct TrainCsvWriter {
                  int output_dim, int fourier_frequencies, float forward_ms,
                  float loss_ms, float backward_ms, float step_ms,
                  float mean_loss, bool all_finite, float cicfm_assembly_ms,
-                 float mean_t, float mean_abs_target_velocity) {
+                 float mean_t, float mean_abs_target_velocity, int trials) {
     file << benchmark_name << "," << loss_mode << "," << device << ","
          << batch_size << "," << num_points << "," << feature_dim << ","
          << input_dim << "," << output_dim << "," << fourier_frequencies << ","
          << field(forward_ms) << "," << field(loss_ms) << ","
          << field(backward_ms) << "," << field(step_ms) << "," << mean_loss
          << "," << all_finite << "," << field(cicfm_assembly_ms) << ","
-         << field(mean_t) << "," << field(mean_abs_target_velocity) << "\n";
+         << field(mean_t) << "," << field(mean_abs_target_velocity) << ","
+         << trials << "\n";
   }
 
   ~TrainCsvWriter() {

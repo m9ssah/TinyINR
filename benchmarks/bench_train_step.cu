@@ -8,7 +8,7 @@
 #include "training/loss.h"
 #include "training/train_step.h"
 
-#include "../src/kernels/train_step.cuh"
+#include "kernel/train_step.cuh"
 #include "bench_utils.cuh"
 
 static const int B = 1;
@@ -102,7 +102,8 @@ int main() {
                     input_dim, CHANNELS, F, median(forward), median(loss_ms),
                     median(backward), median(step),
                     loss_sum / static_cast<float>(NUM_TRIALS), all_finite,
-                    cicfm ? median(assembly) : NAN, stat_mean_t, stat_mean_vel);
+                    cicfm ? median(assembly) : NAN, stat_mean_t, stat_mean_vel,
+                    NUM_TRIALS);
       freeGpuTrainContext(ctx);
 
       const int cpu_trials = (N > 16384) ? 1 : 3;
@@ -112,6 +113,7 @@ int main() {
       CpuTimer cpu_timer;
       std::vector<float> cpu_step;
       float cpu_loss = 0.0f;
+      (void)trainStep(cpu_model, features, targets, cpu_config);
       for (int trial = 0; trial < cpu_trials; trial++) {
         cpu_timer.start();
         TrainStepResult r = trainStep(cpu_model, features, targets, cpu_config);
@@ -122,7 +124,7 @@ int main() {
       csv.write_row("train_step", mode_name, "cpu", B, N, feature_dim,
                     input_dim, CHANNELS, F, NAN, NAN, NAN, median(cpu_step),
                     cpu_loss, std::isfinite(cpu_loss), NAN, stat_mean_t,
-                    stat_mean_vel);
+                    stat_mean_vel, cpu_trials);
     }
   }
   printf("Results written to benchmarks/results/train_step.csv\n");

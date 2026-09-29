@@ -3,9 +3,13 @@
 #define TILE_SIZE 16
 
 __global__ void linear_forward_kernel(const float *d_input,
-                                      const float *d_weight,
+                                      const float *d_weight_T,
                                       const float *d_bias, float *d_output,
                                       int rows, int in_dim, int out_dim);
+
+__global__ void transpose_weight_kernel(const float *d_weight,
+                                        float *d_weight_T, int in_dim,
+                                        int out_dim);
 
 __global__ void linear_backward_input_kernel(const float *d_upstream,
                                              const float *d_weight,
