@@ -19,6 +19,7 @@ add_library(tinyinr_core STATIC
     src/ops/coordinate_batch.cpp
     src/ops/fourier_embedding_raw.cpp
     src/ops/fourier_embedding.cpp
+    src/sampling/coordinate_sampler.cpp
     src/training/cicfm.cpp
     src/training/loss.cpp
     src/training/train_debug.cpp
@@ -65,6 +66,11 @@ add_executable(test_full_size_baseline
     tests/test_full_size_baseline.cpp
 )
 target_link_libraries(test_full_size_baseline PRIVATE tinyinr_core)
+
+add_executable(test_coordinate_sampler
+    tests/test_coordinate_sampler.cpp
+)
+target_link_libraries(test_coordinate_sampler PRIVATE tinyinr_core)
 
 if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:

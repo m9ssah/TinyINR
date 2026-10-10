@@ -1,7 +1,7 @@
 # Week 6: CPU adaptive coordinate sampling
 
-Status: Commit 1 freezes the CPU sampling contract below. Feature implementation
-begins with Commit 2; subsequent milestones remain planned.
+Status: Commits 1-2 are complete: the contract and CPU probability/index sampler
+are implemented. Gathering, training integration, and priority updates remain planned.
 Baseline reviewed: `adaptive_sampling` at `b546546`.
 Input: the supplied partner attention plan and this branch's source code.
 
@@ -239,6 +239,18 @@ remain enabled. CUDA validation is outside this CPU-only commit.
 ### Day 2 — Priorities -> probabilities -> original indices
 
 Commit: `feat(sampling): add seeded uniform and adaptive coordinate draws`
+
+Implemented in `include/sampling/coordinate_sampler.h` and
+`src/sampling/coordinate_sampler.cpp`. `coordinateSamplingProbabilities` returns
+batch-major B*N probabilities; `sampleCoordinateIndices` returns B*K original
+indices and draw-time probabilities using a caller-owned RNG. SamplingConfig
+uses float eta/epsilon with double-precision probability calculations. Set eta=1
+for uniform draws. Priority initialization remains the caller's responsibility.
+
+Validation: all nine Debug CPU test executables pass, including the new
+`test_coordinate_sampler`. The sampler test also passes with AddressSanitizer,
+UndefinedBehaviorSanitizer, and compiler warnings treated as errors. Statistical
+checks use tolerances and fixed seeds rather than a vendor-specific sequence.
 
 - Add sampling header/source and `tests/test_coordinate_sampler.cpp`.
 - Implement the probability rule and return draw-time probabilities with indices.
