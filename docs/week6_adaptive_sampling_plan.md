@@ -1,8 +1,8 @@
 # Week 6: CPU adaptive coordinate sampling
 
-Status: Commits 1-3 are complete: the contract, CPU probability/index sampler,
-and indexed coordinate/value gathering are implemented. Training integration
-and priority updates remain planned.
+Status: Commits 1-4 are complete: the contract, CPU probability/index sampler,
+indexed gathering, and uniform sampled CPU training are implemented. Adaptive
+priority updates remain planned.
 Baseline reviewed: `adaptive_sampling` at `b546546`.
 Input: the supplied partner attention plan and this branch's source code.
 
@@ -294,6 +294,40 @@ was unavailable; this commit adds CPU gathering only.
 ### Day 4 — Run the actual uniform sampled training path
 
 Commit: `feat(training): connect sampled coordinates to CPU train steps`
+
+Implemented in `include/training/sampled_train_step.h` and
+`src/training/sampled_train_step.cpp`:
+
+```cpp
+std::mt19937 coordinate_rng(42); // Initialize once, outside the training loop.
+auto result = sampledTrainStep(model, batch, sample_count, config, coordinate_rng);
+// result.selection: original point indices and uniform draw-time probabilities
+// result.training: existing train-step outputs, targets, and scalar loss
+// result.residuals: [B,K,1] channel-mean squared errors from the pre-SGD forward pass
+```
+
+This commit explicitly uses uniform sampling with replacement. It does not yet
+accept/update persistent priorities. Commit 5 will extend this composition with
+the adaptive state; the standalone sampler already supports adaptive probabilities.
+Coordinate draws advance the caller-owned RNG. CICFM uses config.seed separately;
+callers must vary that seed across random training steps as specified above.
+
+The function checks batch/model/configuration dimensions and the existing raw
+embedding's int indexing limits before sampling. The shared trainStep now rejects
+nonfinite learning rates and scalar loss before SGD. Loss overflow regression
+tests demonstrate the failure on the previous implementation and verify that
+parameters remain unchanged after rejection in both training modes.
+
+The new test compares the composed step with independently assembled per-example
+features and an existing trainStep, including outputs, gradients, updated model
+parameters, RNG state, and source-batch preservation. It covers B>1, F=8/F=16,
+K=1/K=N, MSE, deterministic CICFM, random CICFM, invalid configurations, and known
+channel-mean errors that distinguish CICFM velocity targets from RGB targets.
+The sampled-step and train-step tests also pass AddressSanitizer and
+UndefinedBehaviorSanitizer with compiler warnings treated as errors.
+
+Validation: a fresh Debug build and all eleven CPU test executables passed.
+CUDA was unavailable; no GPU training behavior was exercised.
 
 - Add sampled_train_step header/source, initially with uniform selection and no
   adaptive updates. Add `tests/test_sampled_train_step.cpp`.

@@ -24,6 +24,7 @@ add_library(tinyinr_core STATIC
     src/training/loss.cpp
     src/training/train_debug.cpp
     src/training/train_step.cpp
+    src/training/sampled_train_step.cpp
 )
 target_include_directories(tinyinr_core PUBLIC include)
 
@@ -76,6 +77,11 @@ add_executable(test_coordinate_batch
     tests/test_coordinate_batch.cpp
 )
 target_link_libraries(test_coordinate_batch PRIVATE tinyinr_core)
+
+add_executable(test_sampled_train_step
+    tests/test_sampled_train_step.cpp
+)
+target_link_libraries(test_sampled_train_step PRIVATE tinyinr_core)
 
 if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:

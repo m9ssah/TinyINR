@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -34,7 +35,57 @@ static TrainStepConfig baseConfig(LossMode mode) {
   return config;
 }
 
+static void testLossOverflowRejected() {
+  for (LossMode mode : {LossMode::MSE, LossMode::CICFM}) {
+    TrainStepConfig config{mode, 2, 1, 1, 0.01f, true, 123};
+    const int64_t input_dim = mode == LossMode::MSE ? 6 : 8;
+    Mlp model(MlpConfig{input_dim, 1, 1, 3, ActivationKind::SiLU});
+    const Mlp before = model;
+    Tensor features({1, 1, 6});
+    Tensor targets({1, 1, 1});
+    targets.data()[0] = 1e20f;
+    bool threw = false;
+    try {
+      (void)trainStep(model, features, targets, config);
+    } catch (const std::runtime_error &) {
+      threw = true;
+    }
+    assert(threw);
+    for (size_t layer = 0; layer < model.layers.size(); ++layer) {
+      for (int64_t i = 0; i < model.layers[layer].weight.numel(); ++i) {
+        assert(model.layers[layer].weight.data()[i] ==
+               before.layers[layer].weight.data()[i]);
+      }
+      for (int64_t i = 0; i < model.layers[layer].bias.numel(); ++i) {
+        assert(model.layers[layer].bias.data()[i] ==
+               before.layers[layer].bias.data()[i]);
+      }
+    }
+  }
+}
+
+static void testInvalidLearningRate() {
+  Tensor features({1, 1, 34});
+  Tensor targets({1, 1, 3});
+  for (float rate : {0.0f, -1.0f, std::numeric_limits<float>::infinity(),
+                     std::numeric_limits<float>::quiet_NaN()}) {
+    Mlp model(MlpConfig{34, 1, 3, 3, ActivationKind::SiLU});
+    auto config = baseConfig(LossMode::MSE);
+    config.learning_rate = rate;
+    bool threw = false;
+    try {
+      (void)trainStep(model, features, targets, config);
+    } catch (const std::invalid_argument &) {
+      threw = true;
+    }
+    assert(threw);
+    assert(allParametersFinite(model));
+  }
+}
+
 int main() {
+  testLossOverflowRejected();
+  testInvalidLearningRate();
   Tensor features({1, 4, mseInputDim(2, 8)});
   Tensor targets({1, 4, 3});
   fillFeatures(features);

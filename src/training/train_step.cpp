@@ -1,5 +1,6 @@
 #include "training/train_step.h"
 
+#include <cmath>
 #include <stdexcept>
 
 namespace {
@@ -23,8 +24,8 @@ void validateSharedInputs(const Tensor &features, const Tensor &targets,
   if (targets.shape()[2] != config.value_dim) {
     throw std::invalid_argument("targets value dimension mismatch");
   }
-  if (config.learning_rate <= 0.0f) {
-    throw std::invalid_argument("learning_rate must be positive");
+  if (!std::isfinite(config.learning_rate) || config.learning_rate <= 0.0f) {
+    throw std::invalid_argument("learning_rate must be finite and positive");
   }
 }
 
@@ -86,6 +87,9 @@ TrainStepResult trainStep(Mlp &model, const Tensor &features,
   zeroGrad(model);
   MlpForwardResult forward = mlpForward(model, model_input);
   MseLossResult loss = mseLossAndGradient(forward.output, loss_target);
+  if (!std::isfinite(loss.loss)) {
+    throw std::runtime_error("non-finite train-step loss");
+  }
   TensorStats output_stats = tensorStats(forward.output);
   TensorStats gradient_stats = tensorStats(loss.output_gradient);
   (void)mlpBackward(model, forward.cache, loss.output_gradient);
