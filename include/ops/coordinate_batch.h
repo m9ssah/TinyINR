@@ -36,3 +36,11 @@ CoordinateBatch generateCoordinateBatch(const std::vector<float> &image,
 
 CoordinateBatch randomSubsample(const CoordinateBatch &batch,
                                 int64_t sample_count);
+
+// Copies K points per example in the requested order, preserving duplicates.
+// indices[b*K+k] is an original point index local to example b. Requires
+// 1 <= K <= N and exactly B*K indices in [0,N); invalid inputs throw
+// std::invalid_argument. The source batch and indices are unchanged.
+CoordinateBatch gatherCoordinateBatch(const CoordinateBatch &batch,
+                                     const std::vector<int64_t> &indices,
+                                     int64_t sample_count);

@@ -72,6 +72,11 @@ add_executable(test_coordinate_sampler
 )
 target_link_libraries(test_coordinate_sampler PRIVATE tinyinr_core)
 
+add_executable(test_coordinate_batch
+    tests/test_coordinate_batch.cpp
+)
+target_link_libraries(test_coordinate_batch PRIVATE tinyinr_core)
+
 if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:
     add_library(kernels STATIC

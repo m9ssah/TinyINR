@@ -1,7 +1,8 @@
 # Week 6: CPU adaptive coordinate sampling
 
-Status: Commits 1-2 are complete: the contract and CPU probability/index sampler
-are implemented. Gathering, training integration, and priority updates remain planned.
+Status: Commits 1-3 are complete: the contract, CPU probability/index sampler,
+and indexed coordinate/value gathering are implemented. Training integration
+and priority updates remain planned.
 Baseline reviewed: `adaptive_sampling` at `b546546`.
 Input: the supplied partner attention plan and this branch's source code.
 
@@ -266,6 +267,22 @@ checks use tolerances and fixed seeds rather than a vendor-specific sequence.
 ### Day 3 — Gather the selected data without losing identity
 
 Commit: `feat(coordinates): gather coordinate-value pairs by source index`
+
+Implemented as `gatherCoordinateBatch(batch, indices, sample_count)` in the
+existing coordinate batch header/source. It validates the complete index list
+before allocating output tensors, preserves order and duplicates, and copies
+both coordinates and values from each original point. Inputs remain unchanged;
+the existing randomSubsample implementation still samples without replacement.
+
+`tests/test_coordinate_batch.cpp` covers B>1, K=1/K=N, reordered and duplicate
+selections, non-RGB dimensions, a generated image, malformed counts/indices, and
+composition with both uniform and adaptive sampler output. It also checks the
+existing randomSubsample alignment and no-replacement behavior. The focused test
+passes AddressSanitizer/UndefinedBehaviorSanitizer with compiler warnings treated
+as errors.
+
+Validation: a fresh Debug build and all ten CPU test executables passed. CUDA
+was unavailable; this commit adds CPU gathering only.
 
 - Add gatherCoordinateBatch and `tests/test_coordinate_batch.cpp`.
 - Use marker values to prove coordinates and targets stay aligned for B>1,
