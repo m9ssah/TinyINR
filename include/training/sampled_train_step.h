@@ -20,3 +20,16 @@ SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch
                                       int64_t sample_count,
                                       const TrainStepConfig &config,
                                       std::mt19937 &generator);
+
+// Uses caller-owned [B,N,1] priorities (initialize to ones) to select points.
+// After successful training, updates observed priorities from returned residuals.
+// eta=1 gives uniform draws and leaves priorities unchanged. Probabilities in the
+// result describe the draw before the update. Loss is not importance-corrected.
+// Priority updates are atomic, but later failures do not roll back model/RNG state.
+SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch,
+                                      int64_t sample_count,
+                                      const TrainStepConfig &config,
+                                      Tensor &priorities,
+                                      const SamplingConfig &sampling,
+                                      std::mt19937 &generator,
+                                      float beta = 0.90f);

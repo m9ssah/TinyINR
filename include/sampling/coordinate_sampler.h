@@ -34,3 +34,11 @@ SampleSelection sampleCoordinateIndices(const Tensor &priorities,
                                         int64_t sample_count,
                                         const SamplingConfig &config,
                                         std::mt19937 &generator);
+
+// Average duplicate observations, then apply one EMA update per original point:
+// new = beta*old + (1-beta)*mean_residual. Unobserved points stay unchanged.
+// Residuals must be finite, nonnegative [B,K,1]; beta must be finite in [0,1).
+// Validates the entire selection and priorities before committing any changes.
+void updateCoordinatePriorities(Tensor &priorities,
+                                const SampleSelection &selection,
+                                const Tensor &residuals, float beta = 0.90f);

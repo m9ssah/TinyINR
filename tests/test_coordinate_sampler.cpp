@@ -1,9 +1,11 @@
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
+#include <utility>
 
 #include "sampling/coordinate_sampler.h"
 
@@ -195,10 +197,131 @@ static void testInvalidInputs() {
   }
 }
 
+static void testPriorityUpdates() {
+  Tensor priorities({2, 4, 1});
+  for (int64_t i = 0; i < priorities.numel(); ++i) {
+    priorities.data()[i] = 2.0f;
+  }
+  const Tensor initial = priorities;
+  SampleSelection selection{2, 4, 3, {1, 1, 3, 0, 2, 2},
+                             std::vector<double>(6, 0.25)};
+  Tensor residuals({2, 3, 1});
+  const float errors[] = {2, 6, 10, 0, 4, 8};
+  for (size_t i = 0; i < 6; ++i) {
+    residuals.data()[i] = errors[i];
+  }
+  updateCoordinatePriorities(priorities, selection, residuals, 0.5f);
+  const float expected[] = {2, 3, 2, 6, 1, 2, 4, 2};
+  for (size_t i = 0; i < 8; ++i) {
+    assertNear(priorities.data()[i], expected[i]);
+  }
+  const auto probabilities = coordinateSamplingProbabilities(priorities, SamplingConfig{});
+  assert(probabilities[3] > 0.25);
+  assert(probabilities[6] > 0.25);
+
+  Tensor reordered = initial;
+  std::swap(selection.indices[0], selection.indices[2]);
+  std::swap(residuals.data()[0], residuals.data()[2]);
+  std::swap(selection.indices[3], selection.indices[5]);
+  std::swap(residuals.data()[3], residuals.data()[5]);
+  updateCoordinatePriorities(reordered, selection, residuals, 0.5f);
+  for (size_t i = 0; i < 8; ++i) {
+    assertNear(reordered.data()[i], expected[i]);
+  }
+
+  Tensor replacement = initial;
+  updateCoordinatePriorities(replacement, selection, residuals, 0.0f);
+  assertNear(replacement.at({0, 1, 0}), 4.0);
+  assertNear(replacement.at({1, 2, 0}), 6.0);
+  assertNear(replacement.at({1, 0, 0}), 0.0);
+  assertNear(replacement.at({0, 0, 0}), 2.0);
+
+  Tensor single({1, 1, 1});
+  single.data()[0] = 2.0f;
+  Tensor error({1, 1, 1});
+  error.data()[0] = 12.0f;
+  const SampleSelection one{1, 1, 1, {0}, {1.0}};
+  updateCoordinatePriorities(single, one, error);
+  assertNear(single.data()[0], 3.0, 1e-6); // Default beta is 0.9.
+  single.data()[0] = error.data()[0] = std::numeric_limits<float>::max();
+  updateCoordinatePriorities(single, one, error);
+  assert(single.data()[0] == std::numeric_limits<float>::max());
+}
+
+static void testInvalidUpdatesAreAtomic() {
+  Tensor priorities({2, 4, 1});
+  for (int64_t i = 0; i < priorities.numel(); ++i) {
+    priorities.data()[i] = 2.0f;
+  }
+  const SampleSelection valid{2, 4, 3, {1, 1, 3, 0, 2, 2},
+                              std::vector<double>(6, 0.25)};
+  Tensor residuals({2, 3, 1});
+  const auto reject = [](Tensor p, const SampleSelection &s, const Tensor &r, float beta) {
+    const Tensor before = p;
+    bool threw = false;
+    try {
+      updateCoordinatePriorities(p, s, r, beta);
+    } catch (const std::invalid_argument &) {
+      threw = true;
+    }
+    assert(threw);
+    assert(p.shape() == before.shape());
+    assert(std::memcmp(p.data(), before.data(),
+                       static_cast<size_t>(p.numel()) * sizeof(float)) == 0);
+  };
+  const float nan = std::numeric_limits<float>::quiet_NaN();
+  const float inf = std::numeric_limits<float>::infinity();
+  for (float beta : {-0.1f, 1.0f, inf, nan}) {
+    reject(priorities, valid, residuals, beta);
+  }
+  for (float bad : {-1.0f, inf, nan}) {
+    Tensor bad_residuals = residuals;
+    bad_residuals.data()[5] = bad; // An invalid last item must not update earlier ones.
+    reject(priorities, valid, bad_residuals, 0.5f);
+    Tensor bad_priorities = priorities;
+    bad_priorities.data()[7] = bad; // Unobserved priorities must be validated too.
+    reject(bad_priorities, valid, residuals, 0.5f);
+  }
+  reject(Tensor({2, 4}), valid, residuals, 0.5f);
+  reject(priorities, valid, Tensor({2, 3}), 0.5f);
+  reject(priorities, valid, Tensor({2, 3, 2}), 0.5f);
+  auto selection = valid;
+  selection.batch_size = 1;
+  reject(priorities, selection, residuals, 0.5f);
+  selection = valid;
+  selection.num_points = 5;
+  reject(priorities, selection, residuals, 0.5f);
+  for (int64_t k : {int64_t(0), int64_t(-1), int64_t(5)}) {
+    selection = valid;
+    selection.sample_count = k;
+    reject(priorities, selection, residuals, 0.5f);
+  }
+  for (int64_t index : {int64_t(-1), int64_t(4)}) {
+    selection = valid;
+    selection.indices.back() = index;
+    reject(priorities, selection, residuals, 0.5f);
+  }
+  selection = valid;
+  selection.indices.pop_back();
+  reject(priorities, selection, residuals, 0.5f);
+  selection = valid;
+  selection.probabilities.push_back(0.25);
+  reject(priorities, selection, residuals, 0.5f);
+  for (double probability : {0.0, -1.0, 1.1,
+                             std::numeric_limits<double>::quiet_NaN(),
+                             std::numeric_limits<double>::infinity()}) {
+    selection = valid;
+    selection.probabilities.back() = probability;
+    reject(priorities, selection, residuals, 0.5f);
+  }
+}
+
 int main() {
   testProbabilities();
   testExtremePriorities();
   testDraws();
   testInvalidInputs();
+  testPriorityUpdates();
+  testInvalidUpdatesAreAtomic();
   std::cout << "test_coordinate_sampler PASS\n";
 }

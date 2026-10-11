@@ -215,6 +215,145 @@ static void testInvalidInputs() {
   check(config, 2);
 }
 
+static Tensor initialPriorities() {
+  Tensor priorities({2, 4, 1});
+  for (int64_t i = 0; i < priorities.numel(); ++i) {
+    priorities.data()[i] = 1.0f;
+  }
+  return priorities;
+}
+
+static void testAdaptiveLoop(LossMode mode, bool deterministic) {
+  const auto batch = makeBatch();
+  auto config = makeConfig(mode, deterministic);
+  Mlp model = createMlp(modelConfig(config), 17);
+  Mlp replay = model;
+  Tensor priorities = initialPriorities();
+  Tensor replay_priorities = priorities;
+  std::mt19937 generator(42), replay_rng(42);
+  const SamplingConfig sampling;
+  bool distribution_changed = false;
+  for (int step = 0; step < 5; ++step) {
+    config.seed = 123 + 2 * step;
+    const Tensor before = priorities;
+    const auto before_probs = coordinateSamplingProbabilities(priorities, sampling);
+    std::mt19937 expected_rng = generator;
+    const auto expected_selection =
+        sampleCoordinateIndices(priorities, 3, sampling, expected_rng);
+    const auto result = sampledTrainStep(model, batch, 3, config, priorities,
+                                         sampling, generator, 0.5f);
+    const auto repeated = sampledTrainStep(replay, batch, 3, config, replay_priorities,
+                                           sampling, replay_rng, 0.5f);
+    assert(result.selection.indices == expected_selection.indices);
+    assert(result.selection.probabilities == expected_selection.probabilities);
+    assert(result.selection.indices == repeated.selection.indices);
+    assert(result.selection.probabilities == repeated.selection.probabilities);
+    assert(generator == expected_rng && generator == replay_rng);
+    assertNear(result.training.loss, repeated.training.loss);
+    assertSame(result.residuals, repeated.residuals);
+    assertSameParameters(model, replay);
+    assertSame(priorities, replay_priorities);
+    for (int64_t b = 0; b < 2; ++b) {
+      for (int64_t n = 0; n < 4; ++n) {
+        double sum = 0.0;
+        int count = 0;
+        for (int64_t k = 0; k < 3; ++k) {
+          if (result.selection.indices[static_cast<size_t>(b * 3 + k)] == n) {
+            sum += result.residuals.at({b, k, 0});
+            ++count;
+          }
+        }
+        const double expected = count == 0 ? before.at({b, n, 0})
+            : 0.5 * before.at({b, n, 0}) + 0.5 * sum / count;
+        assertNear(priorities.at({b, n, 0}), expected);
+      }
+    }
+    const auto after_probs = coordinateSamplingProbabilities(priorities, sampling);
+    for (size_t i = 0; i < before_probs.size(); ++i) {
+      distribution_changed = distribution_changed ||
+                             std::fabs(after_probs[i] - before_probs[i]) > 1e-6;
+    }
+  }
+  assert(distribution_changed);
+}
+
+static void testUniformPrioritiesUnchanged() {
+  const auto batch = makeBatch();
+  const auto config = makeConfig(LossMode::CICFM, false);
+  Mlp model = createMlp(modelConfig(config), 17);
+  Mlp original_path = model;
+  Tensor priorities = initialPriorities();
+  priorities.data()[0] = 19.0f;
+  const Tensor before = priorities;
+  SamplingConfig sampling;
+  sampling.eta = 1.0f;
+  std::mt19937 generator(42), original_rng(42);
+  const auto result = sampledTrainStep(model, batch, 3, config, priorities,
+                                       sampling, generator);
+  const auto original = sampledTrainStep(original_path, batch, 3, config, original_rng);
+  assertSame(priorities, before);
+  assert(result.selection.indices == original.selection.indices);
+  assert(result.selection.probabilities == original.selection.probabilities);
+  assertNear(result.training.loss, original.training.loss);
+  assertSame(result.residuals, original.residuals);
+  assertSameParameters(model, original_path);
+  assert(generator == original_rng);
+}
+
+static void testAdaptiveFailures() {
+  const auto batch = makeBatch();
+  const auto config = makeConfig(LossMode::MSE);
+  const auto initial = createMlp(modelConfig(config), 17);
+  const auto reject = [&](Tensor priorities, SamplingConfig sampling, float beta) {
+    Mlp model = initial;
+    const Tensor before = priorities;
+    std::mt19937 generator(42);
+    const auto original_rng = generator;
+    bool threw = false;
+    try {
+      (void)sampledTrainStep(model, batch, 3, config, priorities, sampling, generator, beta);
+    } catch (const std::invalid_argument &) {
+      threw = true;
+    }
+    assert(threw && generator == original_rng);
+    assertSameParameters(model, initial);
+    assertSame(priorities, before);
+  };
+  reject(Tensor({1, 4, 1}), SamplingConfig{}, 0.9f);
+  reject(initialPriorities(), SamplingConfig{}, 1.0f);
+  reject(initialPriorities(), SamplingConfig{}, std::numeric_limits<float>::quiet_NaN());
+  SamplingConfig bad;
+  bad.eta = 0.0f;
+  reject(initialPriorities(), bad, 0.9f);
+  Tensor negative = initialPriorities();
+  negative.data()[7] = -1.0f;
+  reject(negative, SamplingConfig{}, 0.9f);
+
+  for (LossMode mode : {LossMode::MSE, LossMode::CICFM}) {
+    const auto overflow_config = makeConfig(mode);
+    Mlp model(modelConfig(overflow_config));
+    const Mlp before_model = model;
+    Tensor values({2, 4, 3});
+    for (int64_t i = 0; i < values.numel(); ++i) {
+      values.data()[i] = 1e20f;
+    }
+    const CoordinateBatch overflow_batch(batch.coordinates(), values);
+    Tensor priorities = initialPriorities();
+    const Tensor before = priorities;
+    std::mt19937 generator(42);
+    bool threw = false;
+    try {
+      (void)sampledTrainStep(model, overflow_batch, 3, overflow_config, priorities,
+                             SamplingConfig{}, generator);
+    } catch (const std::runtime_error &) {
+      threw = true;
+    }
+    assert(threw);
+    assertSame(priorities, before);
+    assertSameParameters(model, before_model);
+  }
+}
+
 int main() {
   testManualParity(LossMode::MSE, true, 8, 3);
   testManualParity(LossMode::CICFM, true, 8, 3);
@@ -225,5 +364,10 @@ int main() {
   testKnownResiduals(LossMode::CICFM, true);
   testKnownResiduals(LossMode::CICFM, false);
   testInvalidInputs();
+  testAdaptiveLoop(LossMode::MSE, true);
+  testAdaptiveLoop(LossMode::CICFM, true);
+  testAdaptiveLoop(LossMode::CICFM, false);
+  testUniformPrioritiesUnchanged();
+  testAdaptiveFailures();
   std::cout << "test_sampled_train_step PASS\n";
 }

@@ -10,7 +10,9 @@
 SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch,
                                       int64_t sample_count,
                                       const TrainStepConfig &config,
-                                      std::mt19937 &generator) {
+                                      Tensor &priorities,
+                                      const SamplingConfig &sampling,
+                                      std::mt19937 &generator, float beta) {
   if (sample_count <= 0 || sample_count > batch.num_points() ||
       config.coord_dim != batch.coord_dim() ||
       config.value_dim != batch.value_dim() ||
@@ -44,9 +46,11 @@ SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch
     throw std::invalid_argument("sampled train-step model dimensions mismatch");
   }
 
-  Tensor priorities({batch.batch_size(), batch.num_points(), 1});
-  SamplingConfig sampling;
-  sampling.eta = 1.0f;
+  if (priorities.shape() != std::vector<int64_t>(
+          {batch.batch_size(), batch.num_points(), 1}) ||
+      !std::isfinite(beta) || beta < 0.0f || beta >= 1.0f) {
+    throw std::invalid_argument("invalid adaptive training priorities or beta");
+  }
   SampleSelection selection =
       sampleCoordinateIndices(priorities, sample_count, sampling, generator);
   CoordinateBatch sampled = gatherCoordinateBatch(batch, selection.indices, sample_count);
@@ -70,6 +74,20 @@ SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch
       residuals.at({b, k, 0}) = static_cast<float>(sum / config.value_dim);
     }
   }
+  if (sampling.eta < 1.0f) {
+    updateCoordinatePriorities(priorities, selection, residuals, beta);
+  }
   return SampledTrainStepResult{std::move(selection), std::move(training),
                                 std::move(residuals)};
+}
+
+SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch,
+                                      int64_t sample_count,
+                                      const TrainStepConfig &config,
+                                      std::mt19937 &generator) {
+  Tensor priorities({batch.batch_size(), batch.num_points(), 1});
+  SamplingConfig sampling;
+  sampling.eta = 1.0f;
+  return sampledTrainStep(model, batch, sample_count, config, priorities, sampling,
+                          generator);
 }

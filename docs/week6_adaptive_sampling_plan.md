@@ -1,8 +1,8 @@
 # Week 6: CPU adaptive coordinate sampling
 
-Status: Commits 1-4 are complete: the contract, CPU probability/index sampler,
-indexed gathering, and uniform sampled CPU training are implemented. Adaptive
-priority updates remain planned.
+Status: Commits 1-5 are complete: sampling, indexed gathering, CPU training, and
+residual-driven priority updates are implemented. The reproducible demo and
+acceptance-results milestones remain planned.
 Baseline reviewed: `adaptive_sampling` at `b546546`.
 Input: the supplied partner attention plan and this branch's source code.
 
@@ -346,6 +346,48 @@ CUDA was unavailable; no GPU training behavior was exercised.
 ### Day 5 — Close the adaptive feedback loop
 
 Commit: `feat(sampling): update point priorities from training residuals`
+
+Implemented as `updateCoordinatePriorities(priorities, selection, residuals, beta)`
+in the sampling module. It validates priority values, selection metadata, indices,
+draw-time probabilities, residual shapes/values, and beta. It aggregates duplicate
+residuals in double precision and applies one EMA update per observed original
+point. It prepares the complete replacement tensor before assigning it, so a
+rejected update leaves all priorities unchanged. Unsampled priorities are preserved.
+Floating-point aggregation order comparisons use numerical tolerances.
+
+The sampled training module now has an overload accepting caller-owned priorities
+and SamplingConfig. Initialize priorities once for the fixed original batch:
+
+```cpp
+Tensor priorities({batch.batch_size(), batch.num_points(), 1});
+for (int64_t i = 0; i < priorities.numel(); ++i) {
+  priorities.data()[i] = 1.0f;
+}
+SamplingConfig sampling; // eta=0.10, epsilon=1e-6
+std::mt19937 coordinate_rng(42);
+// Inside the loop; advance config.seed per step for random CICFM as specified above:
+auto result = sampledTrainStep(model, batch, sample_count, config, priorities,
+                               sampling, coordinate_rng); // beta defaults to 0.90
+```
+
+Updates occur after successful training and residual calculation. The returned
+selection keeps the probabilities from before the update. Setting eta=1 skips
+priority updates; the original uniform overload remains available with unchanged
+behavior. Training loss remains unweighted. A failed training step does not update
+priorities; model/RNG rollback is not promised for runtime failures.
+
+Tests cover exact EMA math, default beta and beta=0, duplicate averaging and
+permutation, B>1 isolation, untouched points, float-max values, and rejection
+without partial writes (including NaNs in the last observation). Five-step runs
+in MSE, deterministic CICFM, and random CICFM reproduce selections, losses, model
+parameters, and priorities with fixed seeds. They check draw-time probabilities
+and the next distribution, plus uniform-overload parity and unchanged priorities
+when training fails on overflowing loss.
+
+Validation: a fresh Debug build and all eleven CPU test executables passed. The
+sampler and sampled-training tests also passed AddressSanitizer and
+UndefinedBehaviorSanitizer with compiler warnings treated as errors. CUDA was
+unavailable; this milestone validates the CPU feedback loop only.
 
 - Implement duplicate aggregation and one EMA update per observed original point.
 - Wire updates into the sampled training composition after successful training.
