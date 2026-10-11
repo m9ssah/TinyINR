@@ -1,8 +1,8 @@
 # Week 6: CPU adaptive coordinate sampling
 
-Status: Commits 1-6 are complete: sampling, indexed gathering, CPU training,
-residual-driven priority updates, and the reproducible demo are implemented.
-The acceptance-results milestone remains planned.
+Status: Commits 1-7 are complete: sampling, indexed gathering, CPU training,
+residual-driven priority updates, the reproducible demo, and CPU acceptance
+evidence are implemented. See [the results report](week6_adaptive_sampling_results.md).
 Baseline reviewed: `adaptive_sampling` at `b546546`.
 Input: the supplied partner attention plan and this branch's source code.
 
@@ -413,7 +413,7 @@ The demo and sampled-step test passed AddressSanitizer/UndefinedBehaviorSanitize
 with compiler warnings treated as errors. The CLI script also passed in Release,
 alongside short default-size runs for both strategies in both modes and separate
 width-256 smoke runs. CUDA was unavailable. These are functionality checks;
-representative results and the Week 6 acceptance report remain Commit 7 work.
+representative results and the Week 6 acceptance report are recorded under Commit 7.
 
 - Add the CPU-only example target and options for mode, sampling strategy, N/K,
   steps, hidden width, F, learning rate, seeds, eta/beta, and CSV output path.
@@ -437,6 +437,14 @@ representative results and the Week 6 acceptance report remain Commit 7 work.
 ### Day 7 — Acceptance evidence and handoff
 
 Commit: `test(sampling): verify CPU adaptive loop and document results`
+
+Completed: all eleven Debug CPU tests passed, and CLI regressions passed in Debug,
+Release, and the existing sanitizer build. Added single-point/incomplete-grid,
+seed-boundary, exploration-floor, feedback, and eta=1 parity checks. Four matched
+20-step Release runs and two width-256 smoke runs produced finite CSVs, saved in
+`benchmarks/results/week6_adaptive_sampling/`. The [results report](week6_adaptive_sampling_results.md)
+records the environment, commands, evaluation table, coverage, timing breakdown,
+and limitations. CUDA and research-performance claims remain outside this gate.
 
 - Run the full existing and new Debug CPU tests. Add any missing edge regressions.
 - Run short uniform/adaptive demos in both MSE and CICFM, plus a width-256 smoke run.

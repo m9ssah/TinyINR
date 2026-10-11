@@ -57,6 +57,10 @@ def run_demo(executable, directory, name, mode="cicfm", strategy="adaptive", int
             require(float(row["eval_loss"]) >= 0, "evaluation loss")
         require(0 < float(row["probability_min"]) <= float(row["probability_max"]) <= 1,
                 "probability range")
+        require(float(row["probability_min"]) >= float(row["eta"]) / 16 - 1e-12,
+                "uniform exploration floor")
+        require(0 <= float(row["priority_min"]) <= float(row["priority_max"]),
+                "priority range")
         for field in stage_names + ["step_ms", "eval_ms"]:
             require(float(row[field]) >= 0, "negative timing")
         require(sum(float(row[key]) for key in stage_names) <= float(row["step_ms"]) + 1e-9,
@@ -67,6 +71,9 @@ def run_demo(executable, directory, name, mode="cicfm", strategy="adaptive", int
             require(float(row["priority_min"]) == float(row["priority_max"]) == 1,
                     "uniform priorities unchanged")
             require(float(row["update_ms"]) == 0, "uniform updates skipped")
+    if strategy == "adaptive":
+        require(float(rows[-1]["probability_min"]) < float(rows[-1]["probability_max"]),
+                "adaptive feedback must change the next distribution")
     return rows
 
 
@@ -95,6 +102,35 @@ def main():
                     "evaluation must not change training or RNG state")
             if a["eval_loss"]:
                 require(a["eval_loss"] == b["eval_loss"], "fixed evaluation probes")
+
+        # Smallest and incomplete-grid images; eta=1 must match the uniform path.
+        for mode in ("mse", "cicfm"):
+            for points in (1, 7):
+                edge_runs = []
+                for strategy in ("uniform", "adaptive"):
+                    path = directory / "edge.csv"
+                    subprocess.run(
+                        [str(executable), "--mode", mode, "--sampling", strategy,
+                         "--eta", "1", "--beta", "0", "--points", str(points),
+                         "--samples", str(points), "--steps", "1", "--hidden", "1",
+                         "--frequencies", "1", "--eval-every", "10", "--eval-probes", "1",
+                         "--noise-seed", "4294967294", "--eval-seed", "4294967294",
+                         "--csv", str(path)], check=True, capture_output=True, text=True,
+                    )
+                    with path.open(newline="") as stream:
+                        rows = list(csv.DictReader(stream))
+                    require(len(rows) == 2 and all(row["eval_loss"] for row in rows),
+                            "initial and final evaluation even beyond the interval")
+                    for row in rows:
+                        require(math.isfinite(float(row["eval_loss"])), "finite edge evaluation")
+                        require(row["priority_min"] == row["priority_max"] == "1",
+                                "eta=1 skips updates, including beta=0")
+                    if points == 1:
+                        require(rows[-1]["coverage_count"] == "1" and
+                                rows[-1]["duplicate_rate"] == "0", "single-point coverage")
+                    edge_runs.append([{key: value for key, value in without_timing(row).items()
+                                       if key != "sampling"} for row in rows])
+                require(edge_runs[0] == edge_runs[1], "adaptive eta=1 equals uniform")
 
         sentinel = directory / "invalid.csv"
         sentinel.write_text("keep this file")

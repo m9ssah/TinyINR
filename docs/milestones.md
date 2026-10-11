@@ -33,12 +33,13 @@ Gradient Descent
 - [X] prove kernel accelerates performance
 
 # Week 5 (MASSAH)
-- [ ] wire CoordinateBatch into minibatch training
-- [ ] implement uniform coordinate sampling cleanly
-- [ ] make sure coordinatess and targets stay aligned after sampling
-- [ ] write the training loop driver
-- [ ] log loss, coverage, and sample counts
-- [ ] extend benchmark from embedding only to end-to-end train-step timing
+- [x] wire CoordinateBatch into CPU minibatch training
+- [x] implement seeded uniform coordinate sampling with replacement
+- [x] keep coordinates and targets aligned after sampling
+- [x] write the CPU training loop driver
+- [x] log loss, coverage, and sample counts
+- [x] record CPU training-step timings, including sampling and priority feedback
+
 
 ```
 Your tasks:
@@ -73,3 +74,16 @@ CUDA coordinate embedding kernel
 Correctness comparison + benchmark report
 ```
 
+## Week 6 — CPU adaptive sampling
+
+- [x] sample using priorities while retaining uniform exploration
+- [x] update original-point priorities from MSE/CICFM residuals
+- [x] aggregate duplicate draws before applying each priority update
+- [x] reproduce seeded training and fixed full-grid evaluation
+- [x] pass all eleven Debug CPU tests and CLI regression checks
+- [x] save matched uniform/adaptive runs and width-256 smoke evidence
+- [x] document commands, measured results, and limitations in the
+  [acceptance report](week6_adaptive_sampling_results.md)
+
+These completed gates cover the CPU reference. CUDA sampling, attention
+integration, and multi-seed performance experiments remain deferred.
