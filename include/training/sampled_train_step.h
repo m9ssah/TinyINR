@@ -10,6 +10,17 @@ struct SampledTrainStepResult {
   Tensor residuals; // [B,K,1]: channel-mean squared error before the SGD update.
 };
 
+// Wall-clock milliseconds inside the step, excluding caller evaluation/logging.
+struct SampledTrainTimings {
+  double sampling_ms = 0;
+  double gather_ms = 0;
+  double embedding_ms = 0;
+  double train_ms = 0;
+  double residual_ms = 0;
+  double update_ms = 0;
+  double step_ms = 0;
+};
+
 // Uniform draws with replacement, followed by gather, CPU embedding, and one
 // existing trainStep. The caller owns the coordinate RNG and config.seed controls
 // CICFM noise/time separately. No priority updates or importance correction.
@@ -32,4 +43,5 @@ SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch
                                       Tensor &priorities,
                                       const SamplingConfig &sampling,
                                       std::mt19937 &generator,
-                                      float beta = 0.90f);
+                                      float beta = 0.90f,
+                                      SampledTrainTimings *timings = nullptr);

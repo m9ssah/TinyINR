@@ -83,6 +83,10 @@ add_executable(test_sampled_train_step
 )
 target_link_libraries(test_sampled_train_step PRIVATE tinyinr_core)
 
+add_executable(train_adaptive_sampling examples/train_adaptive_sampling.cpp)
+target_link_libraries(train_adaptive_sampling PRIVATE tinyinr_core)
+target_compile_definitions(train_adaptive_sampling PRIVATE TINYINR_BUILD_TYPE="$<CONFIG>")
+
 if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:
     add_library(kernels STATIC

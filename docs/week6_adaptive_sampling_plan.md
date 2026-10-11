@@ -1,8 +1,8 @@
 # Week 6: CPU adaptive coordinate sampling
 
-Status: Commits 1-5 are complete: sampling, indexed gathering, CPU training, and
-residual-driven priority updates are implemented. The reproducible demo and
-acceptance-results milestones remain planned.
+Status: Commits 1-6 are complete: sampling, indexed gathering, CPU training,
+residual-driven priority updates, and the reproducible demo are implemented.
+The acceptance-results milestone remains planned.
 Baseline reviewed: `adaptive_sampling` at `b546546`.
 Input: the supplied partner attention plan and this branch's source code.
 
@@ -401,6 +401,19 @@ unavailable; this milestone validates the CPU feedback loop only.
 ### Day 6 — Add a runnable demo and honest measurements
 
 Commit: `feat(examples): add reproducible adaptive sampling training demo`
+
+Implemented in `examples/train_adaptive_sampling.cpp`, with build/run instructions
+and CSV definitions in [the demo guide](adaptive_sampling_demo.md). The adaptive
+sampled-step overload accepts an optional `SampledTrainTimings` output; existing
+callers can omit it. Evaluation uses a separate, fixed probe bank and forward-only
+loss computation. CSV rows include the initial evaluation and final evaluation.
+
+Validation: all eleven Debug CPU tests and the CLI regression script passed.
+The demo and sampled-step test passed AddressSanitizer/UndefinedBehaviorSanitizer
+with compiler warnings treated as errors. The CLI script also passed in Release,
+alongside short default-size runs for both strategies in both modes and separate
+width-256 smoke runs. CUDA was unavailable. These are functionality checks;
+representative results and the Week 6 acceptance report remain Commit 7 work.
 
 - Add the CPU-only example target and options for mode, sampling strategy, N/K,
   steps, hidden width, F, learning rate, seeds, eta/beta, and CSV output path.
