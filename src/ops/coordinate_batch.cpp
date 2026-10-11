@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <random>
 #include <stdexcept>
@@ -106,5 +107,45 @@ CoordinateBatch randomSubsample(const CoordinateBatch &batch,
     }
   }
 
+  return CoordinateBatch(coordinates, values);
+}
+
+CoordinateBatch gatherCoordinateBatch(const CoordinateBatch &batch,
+                                     const std::vector<int64_t> &indices,
+                                     int64_t sample_count) {
+  if (sample_count <= 0 || sample_count > batch.num_points()) {
+    throw std::invalid_argument("sample_count must be in [1,N]");
+  }
+  if (static_cast<uint64_t>(batch.batch_size()) >
+      std::numeric_limits<size_t>::max() / static_cast<uint64_t>(sample_count)) {
+    throw std::length_error("gather index count overflow");
+  }
+  const size_t count = static_cast<size_t>(batch.batch_size()) *
+                       static_cast<size_t>(sample_count);
+  if (indices.size() != count) {
+    throw std::invalid_argument("gather requires exactly B*K indices");
+  }
+  for (int64_t index : indices) {
+    if (index < 0 || index >= batch.num_points()) {
+      throw std::invalid_argument("gather indices must be in [0,N)");
+    }
+  }
+
+  Tensor coordinates({batch.batch_size(), sample_count, batch.coord_dim()});
+  Tensor values({batch.batch_size(), sample_count, batch.value_dim()});
+  for (int64_t b = 0; b < batch.batch_size(); ++b) {
+    for (int64_t k = 0; k < sample_count; ++k) {
+      const size_t offset = static_cast<size_t>(b) *
+                                static_cast<size_t>(sample_count) +
+                            static_cast<size_t>(k);
+      const int64_t source_point = indices[offset];
+      for (int64_t c = 0; c < batch.coord_dim(); ++c) {
+        coordinates.at({b, k, c}) = batch.coordinates().at({b, source_point, c});
+      }
+      for (int64_t v = 0; v < batch.value_dim(); ++v) {
+        values.at({b, k, v}) = batch.values().at({b, source_point, v});
+      }
+    }
+  }
   return CoordinateBatch(coordinates, values);
 }
