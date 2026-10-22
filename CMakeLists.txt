@@ -23,10 +23,12 @@ add_library(tinyinr_core STATIC
     src/ops/attention.cpp
     src/ops/fourier_embedding_raw.cpp
     src/ops/fourier_embedding.cpp
+    src/sampling/coordinate_sampler.cpp
     src/training/cicfm.cpp
     src/training/loss.cpp
     src/training/train_debug.cpp
     src/training/train_step.cpp
+    src/training/sampled_train_step.cpp
 )
 target_include_directories(tinyinr_core PUBLIC include)
 
@@ -74,6 +76,25 @@ add_executable(test_full_size_baseline
     tests/test_full_size_baseline.cpp
 )
 target_link_libraries(test_full_size_baseline PRIVATE tinyinr_core)
+
+add_executable(test_coordinate_sampler
+    tests/test_coordinate_sampler.cpp
+)
+target_link_libraries(test_coordinate_sampler PRIVATE tinyinr_core)
+
+add_executable(test_coordinate_batch
+    tests/test_coordinate_batch.cpp
+)
+target_link_libraries(test_coordinate_batch PRIVATE tinyinr_core)
+
+add_executable(test_sampled_train_step
+    tests/test_sampled_train_step.cpp
+)
+target_link_libraries(test_sampled_train_step PRIVATE tinyinr_core)
+
+add_executable(train_adaptive_sampling examples/train_adaptive_sampling.cpp)
+target_link_libraries(train_adaptive_sampling PRIVATE tinyinr_core)
+target_compile_definitions(train_adaptive_sampling PRIVATE TINYINR_BUILD_TYPE="$<CONFIG>")
 
 if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:
