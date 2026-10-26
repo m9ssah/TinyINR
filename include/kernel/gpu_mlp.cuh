@@ -4,6 +4,7 @@
 
 struct GpuLinearLayer {
   float *weight;
+  float *weight_T;
   float *bias;
   float *grad_weight;
   float *grad_bias;
@@ -29,6 +30,18 @@ inline GpuMlp uploadMlp(const Mlp &mlp) {
 
     layer.weight = cuda_alloc(w_count);
     cuda_h2d(layer.weight, src.weight.data(), w_count);
+
+    std::vector<float> w_t(w_count);
+    const float *w_src = src.weight.data();
+    for (int o = 0; o < layer.out_dim; o++) {
+      for (int i = 0; i < layer.in_dim; i++) {
+        w_t[static_cast<size_t>(i) * layer.out_dim + o] =
+            w_src[static_cast<size_t>(o) * layer.in_dim + i];
+      }
+    }
+    layer.weight_T = cuda_alloc(w_count);
+    cuda_h2d(layer.weight_T, w_t.data(), w_count);
+
     layer.bias = cuda_alloc(b_count);
     cuda_h2d(layer.bias, src.bias.data(), b_count);
 
@@ -61,6 +74,7 @@ inline void freeGpuMlp(GpuMlp &gpu) {
   int n = sizeof(gpu.layers) / sizeof(gpu.layers[0]);
   for (int i = 0; i < n; i++) {
     cudaFree(gpu.layers[i].weight);
+    cudaFree(gpu.layers[i].weight_T);
     cudaFree(gpu.layers[i].bias);
     cudaFree(gpu.layers[i].grad_weight);
     cudaFree(gpu.layers[i].grad_bias);

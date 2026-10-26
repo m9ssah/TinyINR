@@ -87,3 +87,30 @@ inline bool check_parity_rel(const float *cpu_out, const float *gpu_out,
   printf("[PARITY REL PASS] max absolute error = %e\n", max_err);
   return true;
 }
+
+struct GpuTimer {
+  cudaEvent_t t_start, t_stop;
+
+  GpuTimer() {
+    CUDA_CHECK(cudaEventCreate(&t_start));
+    CUDA_CHECK(cudaEventCreate(&t_stop));
+  }
+
+  ~GpuTimer() {
+    cudaEventDestroy(t_start);
+    cudaEventDestroy(t_stop);
+  }
+
+  void start() { CUDA_CHECK(cudaEventRecord(t_start)); }
+
+  void stop() {
+    CUDA_CHECK(cudaEventRecord(t_stop));
+    CUDA_CHECK(cudaEventSynchronize(t_stop));
+  }
+
+  float elapsed_ms() const {
+    float ms = 0.0f;
+    CUDA_CHECK(cudaEventElapsedTime(&ms, t_start, t_stop));
+    return ms;
+  }
+};

@@ -1,4 +1,4 @@
-#include "silu.cuh"
+#include "kernel/silu.cuh"
 
 #include <math.h>
 

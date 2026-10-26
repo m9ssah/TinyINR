@@ -1,4 +1,4 @@
-#include "coordinate_embedding.cuh"
+#include "kernel/coordinate_embedding.cuh"
 #include <math.h>
 
 #ifndef M_PI

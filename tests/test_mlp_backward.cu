@@ -6,11 +6,11 @@
 #include "model/mlp.h"
 #include "training/loss.h"
 
-#include "cuda_utils.cuh"
-#include "mlp_backward.cuh"
-#include "mlp_forward.cuh"
-#include "mse.cuh"
-#include "sgd.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/mlp_backward.cuh"
+#include "kernel/mlp_forward.cuh"
+#include "kernel/mse.cuh"
+#include "kernel/sgd.cuh"
 
 static void fill_random(Tensor &t, std::mt19937 &rng) {
   std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
@@ -56,9 +56,9 @@ static void run_case(const MlpConfig &config, uint32_t seed, int rows,
   cuda_h2d(d_target, target.data(), out_count);
 
   gpuMlpForward(gpu, cache);
-  mse_grad<<<compute_grid_size(static_cast<int>(out_count)),
-             THREADS_PER_BLOCK>>>(cache.output, d_target, cache.grad_output,
-                                  static_cast<int>(out_count));
+  mse_grad_kernel<<<compute_grid_size(static_cast<int>(out_count)),
+                    THREADS_PER_BLOCK>>>(
+      cache.output, d_target, cache.grad_output, static_cast<int>(out_count));
   CUDA_CHECK_LAST_ERROR();
   gpuMlpBackward(gpu, cache);
   gpuSgdStep(gpu, lr);

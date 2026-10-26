@@ -10,6 +10,9 @@ if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
     set(CMAKE_CUDA_STANDARD 14)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+        set(CMAKE_CUDA_ARCHITECTURES native)
+    endif()
 endif()
 
 
@@ -17,6 +20,7 @@ add_library(tinyinr_core STATIC
     src/tensor.cpp
     src/model/mlp.cpp
     src/ops/coordinate_batch.cpp
+    src/ops/attention.cpp
     src/ops/fourier_embedding_raw.cpp
     src/ops/fourier_embedding.cpp
     src/sampling/coordinate_sampler.cpp
@@ -32,6 +36,11 @@ add_executable(test_fourier_embedding_tensor
     tests/test_fourier_embedding_tensor.cpp
 )
 target_link_libraries(test_fourier_embedding_tensor PRIVATE tinyinr_core)
+
+add_executable(test_attention
+    tests/test_attention.cpp
+)
+target_link_libraries(test_attention PRIVATE tinyinr_core)
 
 add_executable(test_mlp_forward
     tests/test_mlp_forward.cpp
@@ -98,6 +107,8 @@ if(CMAKE_CUDA_COMPILER)
         src/kernels/mse.cu
         src/kernels/sgd.cu
         src/kernels/mlp_backward.cu
+        src/kernels/cicfm.cu
+        src/kernels/train_step.cu
     )
     target_include_directories(kernels PUBLIC src/kernels)
     target_link_libraries(kernels PUBLIC tinyinr_core)
@@ -139,6 +150,12 @@ if(CMAKE_CUDA_COMPILER)
     target_link_libraries(test_mlp_backward_cuda PRIVATE kernels tinyinr_core)
     target_include_directories(test_mlp_backward_cuda PRIVATE src/kernels)
 
+    add_executable(test_train_step_cuda
+        tests/test_train_step_cuda.cu
+    )
+    target_link_libraries(test_train_step_cuda PRIVATE kernels tinyinr_core)
+    target_include_directories(test_train_step_cuda PRIVATE src/kernels)
+
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding
         benchmarks/bench_coordinate_embedding.cu
@@ -151,4 +168,10 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(benchmark_cpu_embedding PRIVATE kernels)
     target_include_directories(benchmark_cpu_embedding PRIVATE src/kernels)
+
+    add_executable(bench_train_step
+        benchmarks/bench_train_step.cu
+    )
+    target_link_libraries(bench_train_step PRIVATE kernels)
+    target_include_directories(bench_train_step PRIVATE src/kernels)
 endif()

@@ -6,8 +6,8 @@
 
 #include "model/mlp.h"
 
-#include "../src/kernels/cuda_utils.cuh"
-#include "../src/kernels/silu.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/silu.cuh"
 
 static void run_case(const std::vector<float> &input, const char *name) {
   const int n = static_cast<int>(input.size());

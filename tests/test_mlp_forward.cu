@@ -3,8 +3,8 @@
 #include <random>
 #include <vector>
 
-#include "../src/kernels/cuda_utils.cuh"
-#include "../src/kernels/mlp_forward.cuh"
+#include "kernel/cuda_utils.cuh"
+#include "kernel/mlp_forward.cuh"
 #include "model/mlp.h"
 
 static void run_case(const MlpConfig &config, uint32_t seed, int rows,

@@ -61,26 +61,22 @@ int main() {
   cicfm_config.input_dim = deterministic.input.shape()[2];
   Mlp cicfm_model = createMlp(cicfm_config, 13);
 
-  const float cicfm_initial =
-      trainStep(cicfm_model, deterministic.input,
-                deterministic.target_velocity, 0.03f);
+  const float cicfm_initial = trainStep(cicfm_model, deterministic.input,
+                                        deterministic.target_velocity, 0.03f);
   float cicfm_final = cicfm_initial;
   for (int step = 0; step < 200; ++step) {
-    cicfm_final =
-        trainStep(cicfm_model, deterministic.input,
-                  deterministic.target_velocity, 0.03f);
+    cicfm_final = trainStep(cicfm_model, deterministic.input,
+                            deterministic.target_velocity, 0.03f);
   }
   assert(cicfm_final < cicfm_initial);
 
   Tensor random_z0 = sampleUniform(targets.shape(), 0.0f, 1.0f, 101);
-  Tensor random_t =
-      sampleUniform({targets.shape()[0], targets.shape()[1], 1}, 0.0f, 1.0f,
-                    102);
+  Tensor random_t = sampleUniform({targets.shape()[0], targets.shape()[1], 1},
+                                  0.0f, 1.0f, 102);
   CicfmBatch random_batch =
       makeCicfmBatch(features, targets, random_z0, random_t);
-  const float random_loss =
-      trainStep(cicfm_model, random_batch.input, random_batch.target_velocity,
-                0.01f);
+  const float random_loss = trainStep(cicfm_model, random_batch.input,
+                                      random_batch.target_velocity, 0.01f);
   assert(std::isfinite(random_loss));
 
   std::cout << "test_training_debug PASS\n";
