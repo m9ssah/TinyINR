@@ -97,8 +97,9 @@ Options parse(int argc, char **argv) {
     throw std::invalid_argument("invalid demo configuration (see --help)");
   }
   const int64_t features = 2 + 4 * static_cast<int64_t>(o.frequencies);
-  if (features > std::numeric_limits<int>::max() / o.points) {
-    throw std::invalid_argument("full-grid features exceed CPU embedding index limits");
+  if (o.frequencies >= std::numeric_limits<float>::max_exponent ||
+      features > std::numeric_limits<int>::max() / o.points) {
+    throw std::invalid_argument("full-grid features exceed CPU embedding limits");
   }
   const uint64_t max_seed = std::numeric_limits<uint32_t>::max();
   if (static_cast<uint64_t>(o.noise_seed) + 2ULL * o.steps - 1 > max_seed ||
