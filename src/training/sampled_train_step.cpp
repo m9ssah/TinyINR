@@ -32,7 +32,9 @@ SampledTrainStepResult sampledTrainStep(Mlp &model, const CoordinateBatch &batch
 
   // The existing raw CPU embedding uses int for dimensions and flat offsets.
   const int64_t max_int = std::numeric_limits<int>::max();
-  if (config.num_frequencies <= 0 || config.coord_dim > max_int ||
+  if (config.num_frequencies <= 0 ||
+      config.num_frequencies >= std::numeric_limits<float>::max_exponent ||
+      config.coord_dim > max_int ||
       config.num_frequencies > (max_int / config.coord_dim - 1) / 2) {
     throw std::invalid_argument("feature width exceeds CPU embedding limits");
   }
