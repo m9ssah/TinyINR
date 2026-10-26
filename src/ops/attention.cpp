@@ -151,10 +151,9 @@ Tensor attention(const AttentionWeights &weights, const AttentionInputs &inputs,
   return output;
 }
 
-// TODO: come back to this after kernels are done
-// Tensor latent_to_coordinate_attention(const AttentionWeights &weights,
-//                                       const CoordinateBatch &batch,
-//                                       const Tensor &latents,
-//                                       const AttentionConfig &config) {
-//   return attention(weights, {batch.coordinates(), latents}, config);
-// }
+Tensor latent_to_coordinate_attention(const AttentionWeights &weights,
+                                      const CoordinateBatch &batch,
+                                      const Tensor &latents,
+                                      const AttentionConfig &config) {
+  return attention(weights, {batch.coordinates(), latents}, config);
+}
