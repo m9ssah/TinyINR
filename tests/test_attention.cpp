@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 #include "ops/attention.h"
@@ -17,13 +18,11 @@ int main() {
   AttentionWeights weights{Tensor({2, 2}), Tensor({2}),    Tensor({2, 4}),
                            Tensor({4}),    Tensor({2, 2}), Tensor({2})};
   // 0 queries give uniform attention
-  // the value projection is identity
+  // Identity value/output projections preserve the mean latent [2, 3].
   weights.w_KV.at({0, 2}) = 1.0f;
-  weights.w_KV.at({0, 3}) = 1.0f;
-  weights.w_KV.at({1, 2}) = 1.0f;
   weights.w_KV.at({1, 3}) = 1.0f;
-  weights.w_Q.at({0, 0}) = 1.0f;
-  weights.w_Q.at({1, 1}) = 1.0f;
+  weights.w_O.at({0, 0}) = 1.0f;
+  weights.w_O.at({1, 1}) = 1.0f;
 
   Tensor output =
       latent_to_coordinate_attention(weights, batch, latents, config);
