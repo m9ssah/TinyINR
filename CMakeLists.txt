@@ -42,6 +42,11 @@ add_executable(test_attention
 )
 target_link_libraries(test_attention PRIVATE tinyinr_core)
 
+add_executable(test_attention_reference
+    tests/test_attention_reference.cpp
+)
+target_link_libraries(test_attention_reference PRIVATE tinyinr_core)
+
 add_executable(test_mlp_forward
     tests/test_mlp_forward.cpp
 )
