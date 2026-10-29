@@ -115,6 +115,7 @@ if(CMAKE_CUDA_COMPILER)
         src/kernels/cicfm.cu
         src/kernels/train_step.cu
     )
+    target_compile_options(kernels PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--generate-line-info>)
     target_include_directories(kernels PUBLIC src/kernels)
     target_link_libraries(kernels PUBLIC tinyinr_core)
 
