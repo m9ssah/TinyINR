@@ -32,6 +32,12 @@ add_library(tinyinr_core STATIC
 )
 target_include_directories(tinyinr_core PUBLIC include)
 
+add_library(tinyinr_io STATIC src/io/ppm.cpp)
+target_include_directories(tinyinr_io PUBLIC include)
+
+add_executable(test_ppm tests/test_ppm.cpp)
+target_link_libraries(test_ppm PRIVATE tinyinr_io)
+
 add_executable(test_fourier_embedding_tensor
     tests/test_fourier_embedding_tensor.cpp
 )
