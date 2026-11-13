@@ -120,6 +120,7 @@ if(CMAKE_CUDA_COMPILER)
         src/kernels/mlp_backward.cu
         src/kernels/cicfm.cu
         src/kernels/train_step.cu
+        src/kernels/adamw.cu
     )
     target_compile_options(kernels PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--generate-line-info>)
     target_include_directories(kernels PUBLIC src/kernels)
@@ -167,6 +168,11 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(test_train_step_cuda PRIVATE kernels tinyinr_core)
     target_include_directories(test_train_step_cuda PRIVATE src/kernels)
+
+    add_executable(test_adamw_cuda
+        tests/test_adamw_cuda.cu
+    )
+    target_link_libraries(test_adamw_cuda PRIVATE kernels tinyinr_core)
 
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding

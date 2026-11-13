@@ -1,5 +1,6 @@
 #pragma once
 #include "gpu_mlp.cuh"
+#include "adamw.cuh"
 #include "training/loss.h"
 
 struct GpuTrainContext {
@@ -19,6 +20,15 @@ struct GpuTrainContext {
 
 GpuTrainContext createGpuTrainContext(const Mlp &model, const MlpConfig &config,
                                       int rows, int feature_dim, int channels);
+
+// TODO: future implementation for optimization
+void gpuUploadTrainData(GpuTrainContext &ctx, const Tensor &features,
+                        const Tensor &targets);
+
+// TODO : future implementation for optimization
+void gpuTrainStepResident(GpuTrainContext &ctx, GpuAdamW &adamw, const AdamWConfig &cfg);
+
+
 
 void freeGpuTrainContext(GpuTrainContext &ctx);
 

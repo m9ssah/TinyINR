@@ -122,3 +122,7 @@ float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
   }
   return loss_sum / static_cast<float>(out_count);
 }
+
+void gpuUploadTrainData(GpuTrainContext &ctx, const Tensor &features, const Tensor &targets) {}
+
+void gpuTrainStepResident(GpuTrainContext &ctx, GpuAdamW &adamw, const AdamWConfig &cfg) {}
