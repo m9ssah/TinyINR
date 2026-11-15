@@ -174,6 +174,11 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(test_adamw_cuda PRIVATE kernels tinyinr_core)
 
+    add_executable(test_train_step_resident_cuda
+        tests/test_train_step_resident_cuda.cu
+    )
+    target_link_libraries(test_train_step_resident_cuda PRIVATE kernels tinyinr_core)
+
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding
         benchmarks/bench_coordinate_embedding.cu

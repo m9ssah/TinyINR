@@ -7,7 +7,7 @@
 
 #include "model/mlp.h"
 
-#include "kernel/adamw.cuh"
+#include "optim/adamw.cuh"
 #include "kernel/cuda_utils.cuh"
 
 namespace {

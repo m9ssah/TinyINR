@@ -1,6 +1,6 @@
 #pragma once
-#include "optim/adamw.cuh"
 #include "nn/gpu_mlp.cuh"
+#include "optim/adamw.cuh"
 #include "training/loss.h"
 
 struct GpuTrainContext {
@@ -31,14 +31,6 @@ float gpuReadLoss(const GpuTrainContext &ctx);
 
 void freeGpuTrainContext(GpuTrainContext &ctx);
 
-struct StageTimings {
-  float assembly_ms; // CICFM only; 0 for MSE
-  float forward_ms;
-  float loss_ms;     // mse_loss + mse_grad kernels
-  float backward_ms; // gpuMlpBackward
-  float step_ms;     // gpuTrainStep
-};
-
 float gpuTrainStep(GpuTrainContext &ctx, LossMode mode, const Tensor &features,
                    const Tensor &targets, const Tensor *z0, const Tensor *t,
-                   float lr, StageTimings *timings = nullptr);
+                   float lr);
