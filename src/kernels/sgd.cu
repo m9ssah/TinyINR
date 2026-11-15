@@ -1,6 +1,6 @@
 #include "kernel/cuda_utils.cuh"
 #include "kernel/linear.cuh"
-#include "kernel/sgd.cuh"
+#include "optim/sgd.cuh"
 
 __global__ void sgd_kernel(float *d_param, const float *d_grad, float lr,
                            int n) {

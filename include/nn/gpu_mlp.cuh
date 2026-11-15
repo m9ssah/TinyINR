@@ -1,5 +1,5 @@
 #pragma once
-#include "cuda_utils.cuh"
+#include "kernel/cuda_utils.cuh"
 #include "model/mlp.h"
 
 struct GpuLinearLayer {
@@ -87,7 +87,7 @@ struct GpuForwardCache {
   float *activation[3];
   float *output; // [row, output_dim]
 
-  // grad_output receives dL/dOutput from mse_grad, grad_a and grad_z carry 
+  // grad_output receives dL/dOutput from mse_grad, grad_a and grad_z carry
   // upstream gradient back through the hidden layers.
   float *grad_output; // [rows, output_dim]
   float *grad_a;      // [rows, hidden_width]

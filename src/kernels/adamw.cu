@@ -1,4 +1,4 @@
-#include "kernel/adamw.cuh"
+#include "optim/adamw.cuh"
 
 #include <cmath>
 

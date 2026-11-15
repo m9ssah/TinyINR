@@ -1,6 +1,6 @@
 #pragma once
 
-#include "kernel/gpu_mlp.cuh"
+#include "nn/gpu_mlp.cuh"
 
 struct AdamWConfig {
   float lr = 1e-3f;
