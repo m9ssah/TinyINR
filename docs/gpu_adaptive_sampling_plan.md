@@ -1,8 +1,9 @@
 # GPU adaptive sampling implementation plan
 
-Status: commit 1 in progress on `codex/gpu-adaptive-sampling`; NVIDIA-host validation
-pending; AWS quota approval is no longer a prerequisite. No GPU sampling code implemented yet. See the
-[baseline record](gpu_adaptive_sampling_baseline.md) for executed checks and gates.
+Status: commits 1a and 1b complete on `codex/gpu-adaptive-sampling`; local CPU
+and Vast NVIDIA baseline checks passed. No GPU sampling code implemented yet.
+See the [baseline record](gpu_adaptive_sampling_baseline.md) for executed checks,
+exported logs and the installed CUB requirement for C++17. Next: commit 2.
 Baseline inspected: `910f64406178b36e9c3e35a27f2bf604a5756619` (includes CPU
 sampling, attention build fix, and CPU embedding-limit validation updates).
 
@@ -100,7 +101,8 @@ out-of-range draw to the last bin. Document any narrower supported numerical ran
 Use toolkit-provided CUB reduction/scan/sort primitives rather than implementing a
 new general-purpose scan library. A per-example scan launch is sufficient initially;
 reuse scratch buffers. Check installed toolkit APIs and language requirements first:
-this repo uses C++/CUDA 14, whereas modern CCCL releases require C++17. Limit any
+the Vast baseline confirms installed CUB 3.3.4 requires C++17, while existing
+code builds with C++/CUDA 14. Limit any
 required language-standard change to affected CUDA targets and test existing targets.
 
 Use cuRAND Philox for GPU random generation, with distinct streams/seeds for point

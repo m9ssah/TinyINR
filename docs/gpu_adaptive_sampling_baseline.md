@@ -1,8 +1,8 @@
 # GPU adaptive sampling: commit 1 baseline
 
-Status: local preparation for commit 1a is ready; NVIDIA execution and toolkit
-compatibility for commit 1b are pending. AWS quota approval is not required.
-Do not mark 1b or any GPU implementation milestone complete using local CPU tests.
+Status: commits 1a and 1b complete. Local CPU checks and the actual NVIDIA
+baseline passed. Toolkit compatibility is recorded below; no production changes
+were required. This establishes the starting point for commit 2.
 
 Source baseline: `910f64406178b36e9c3e35a27f2bf604a5756619`.
 Implementation branch: `codex/gpu-adaptive-sampling`.
@@ -27,13 +27,17 @@ Python 3.15.0. Neither nvcc nor nvidia-smi is available on PATH; CMake reports
 | Fresh Debug CPU build | PASS, exit 0 |
 | Twelve CPU executables | All PASS, exit 0 |
 | Adaptive demo CLI regression | PASS, exit 0 |
-| Fallback provider/location, GPU and memory | Not supplied |
-| NVIDIA driver, nvcc and GPU architecture | Not checked |
-| CUB/cuRAND headers and compiler compatibility | Not checked |
-| Seven existing CUDA executables | Not run |
-| GPU baseline acceptance gate | Pending |
+| NVIDIA host | Vast.ai, RTX 4060 Ti 16 GB; geography unverified |
+| NVIDIA driver, nvcc and GPU architecture | Verified; see environment table |
+| CUB/cuRAND headers and compiler compatibility | PASS with C++17; C++14 rejection confirmed |
+| Remote twelve CPU + seven CUDA executables | All PASS, each exit 0 |
+| Remote adaptive demo CLI regression | PASS, exit 0 |
+| Toolkit probe Compute Sanitizer memcheck | PASS, exit 0; zero errors |
+| GPU baseline acceptance gate | PASS |
 
-Commands used locally, from the repository root:
+Local checks were rerun successfully on 2026-11-16 after the original fresh
+build; the production source SHA is unchanged. Commands used locally, from the
+repository root:
 
 ```sh
 cmake -S . -B /tmp/tinyinr-gpu-baseline-debug -DCMAKE_BUILD_TYPE=Debug
@@ -48,35 +52,55 @@ python3 tests/test_adaptive_sampling_demo.py \
   /tmp/tinyinr-gpu-baseline-debug/train_adaptive_sampling
 ```
 
-## NVIDIA host procedure (not executed)
+## NVIDIA host procedure
 
-Connection information needed: SSH host/user or alias, local identity-file path
-if applicable, and checkout directory. Never place private keys in this report.
-Use a separate checkout/build directory; do not overwrite another person's work.
-Confirm the source SHA above, or explicitly record a new baseline if it changes.
+Executed on Vast.ai on 2026-11-16 UTC, using GPU 0 only. Source was transferred
+with `git archive` from the baseline SHA into the isolated directory
+`/tmp/tinyinr-baseline-910f644-5UqCXL/source`; build directory is its sibling `build`.
+Archive SHA-256 (matched locally/remotely):
+`a180b8099b114b5a94e3cfe31b515b00d6bb075a13114392374790261efd26a5`.
 
-Record provider, location, machine/image identifier, `nvidia-smi`, `nvcc --version`, `cmake --version`, host
-compiler version, available GPU memory and compute capability. Record both driver
-and installed toolkit versions: the CUDA version displayed by nvidia-smi is not
-the installed nvcc version. Confirm toolkit CUB/cuRAND headers and version macros
-with a small compile probe using the installed compiler before choosing APIs.
-Keep any required compatibility fix separate and rerun the baseline after it.
+| Environment | Observed value |
+|---|---|
+| GPU | 2 x NVIDIA GeForce RTX 4060 Ti, 16380 MiB each; tests use GPU 0 |
+| Compute capability / build architecture | 8.9 / `89` |
+| NVIDIA driver | 610.57.04; driver reports CUDA support 13.3 |
+| Installed nvcc | CUDA 13.3, V13.3.73 |
+| Host OS / compiler | Ubuntu 24.04.5 / GCC 13.3.0 |
+| CMake / Python | 3.28.3 / 3.12.3 |
+| CUB / cuRAND | CUB_VERSION=300304 (3.3.4); cuRAND 10.4.3, build 29 |
+| Compute Sanitizer | 2026.2.1.0; memcheck probe works in this container |
+| Image identity | Reports vast-ai/base-image repository; immutable digest unavailable |
+| Location / storage | Geography unverified; workspace is not volume-backed |
+
+The complete existing project builds unchanged in Debug with C++/CUDA 14.
+The separate CUB/cuRAND probe fails compilation under C++14 because installed
+CUB/libcu++ require C++17; it compiles and executes under C++17. It verifies an
+inclusive double scan yields `[1,3,6]` and Philox produces a value in `(0,1]`.
+Compute Sanitizer memcheck reports zero errors for that probe. No dialect-ignore
+macros were used. When CUB is introduced, set CUDA_STANDARD 17 on affected targets
+and rerun existing CUDA tests; no CMake change is necessary for this baseline.
+
+Probe source and exported evidence: [baseline evidence](results/gpu_baseline_910f644/README.md).
+These are correctness checks, not sampling benchmarks or validation of future kernels.
 
 From that checkout, run each command only after the preceding one succeeds:
 
 ```sh
-cmake -S . -B /tmp/tinyinr-nvidia-gpu-baseline -DCMAKE_BUILD_TYPE=Debug
-cmake --build /tmp/tinyinr-nvidia-gpu-baseline -j4
+export CUDA_VISIBLE_DEVICES=0
+cmake -S . -B /tmp/tinyinr-baseline-910f644-5UqCXL/build \
+  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CUDA_ARCHITECTURES=89
+cmake --build /tmp/tinyinr-baseline-910f644-5UqCXL/build -j4
 for name in test_fourier_embedding_tensor test_attention test_mlp_forward \
   test_loss test_cicfm test_mlp_backward test_training_debug test_train_step \
   test_full_size_baseline test_coordinate_sampler test_coordinate_batch \
   test_sampled_train_step test_fourier_embedding_cuda test_cpu_cuda_parity \
   test_silu_cuda test_mlp_forward_cuda test_mse_cuda test_mlp_backward_cuda \
   test_train_step_cuda; do
-  /tmp/tinyinr-nvidia-gpu-baseline/"$name" || exit 1
+  /tmp/tinyinr-baseline-910f644-5UqCXL/build/"$name" || exit 1
 done
 python3 tests/test_adaptive_sampling_demo.py \
-  /tmp/tinyinr-nvidia-gpu-baseline/train_adaptive_sampling
+  /tmp/tinyinr-baseline-910f644-5UqCXL/build/train_adaptive_sampling
 ```
 
 Require CUDA detection, not just a successful CPU-only configure. Existing C++
