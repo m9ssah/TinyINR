@@ -1,9 +1,10 @@
 # GPU adaptive sampling implementation plan
 
-Status: commits 1a and 1b complete on `codex/gpu-adaptive-sampling`; local CPU
+Status: commits 1a and 1b complete on `gpu-adaptive-sampling`; local CPU
 and Vast NVIDIA baseline checks passed. No GPU sampling code implemented yet.
 See the [baseline record](gpu_adaptive_sampling_baseline.md) for executed checks,
-exported logs and the installed CUB requirement for C++17. Next: commit 2.
+exported logs and the installed CUB requirement for C++17. Commit 2 is in progress;
+its device-input path and focused tests are written but GPU validation is pending.
 Baseline inspected: `910f64406178b36e9c3e35a27f2bf604a5756619` (includes CPU
 sampling, attention build fix, and CPU embedding-limit validation updates).
 
@@ -170,6 +171,12 @@ Release builds. Add finite checks before SGD and status propagation for this pat
 Tests: original host wrapper versus device-input path, MSE and deterministic CICFM,
 loss/output/parameters and allocation ownership. Preserve old callers and benchmark.
 Gate: GPU training consumes already resident inputs with no data round-trip.
+
+Current commit 2 verification: local CPU-only Debug build, all twelve CPU tests,
+and the CLI regression passed. CUDA compile/runtime, existing GPU parity,
+Release validation, and sanitizer checks remain pending because the previously
+working Vast SSH endpoint refuses connections. Do not mark this milestone complete
+or commit the implementation until the NVIDIA checks pass.
 
 ### 3. `feat(cuda): fuse sampled gathering with training embedding`
 
