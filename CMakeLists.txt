@@ -99,6 +99,7 @@ target_compile_definitions(train_adaptive_sampling PRIVATE TINYINR_BUILD_TYPE="$
 if(CMAKE_CUDA_COMPILER)
     # CUDA kernel library:
     add_library(kernels STATIC
+        src/kernels/coordinate_gather.cu
         src/kernels/coordinate_embedding.cu
         src/kernels/silu.cu
         src/kernels/linear_forward.cu
@@ -155,6 +156,24 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(test_train_step_cuda PRIVATE kernels tinyinr_core)
     target_include_directories(test_train_step_cuda PRIVATE src/kernels)
+
+    add_executable(test_train_step_device tests/test_train_step_device.cu)
+    target_link_libraries(test_train_step_device PRIVATE kernels)
+
+    add_executable(test_coordinate_gather_cuda tests/test_coordinate_gather_cuda.cu)
+    target_link_libraries(test_coordinate_gather_cuda PRIVATE kernels)
+
+    add_library(sampling_kernels STATIC
+        src/kernels/coordinate_sampler.cu
+        src/kernels/coordinate_priority.cu
+    )
+    set_target_properties(sampling_kernels PROPERTIES CUDA_STANDARD 17)
+    target_link_libraries(sampling_kernels PUBLIC kernels)
+    add_executable(test_coordinate_sampler_cuda tests/test_coordinate_sampler_cuda.cu)
+    target_link_libraries(test_coordinate_sampler_cuda PRIVATE sampling_kernels)
+
+    add_executable(test_coordinate_priority_cuda tests/test_coordinate_priority_cuda.cu)
+    target_link_libraries(test_coordinate_priority_cuda PRIVATE sampling_kernels)
 
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding

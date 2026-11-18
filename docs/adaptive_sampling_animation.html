@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TinyINR · Adaptive sampling loop</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0d10; color: #e6edf3; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 960px; margin: 32px auto; padding: 0 20px; }
+  h1 { font-size: clamp(22px, 4vw, 32px); margin-bottom: 8px; }
+  p { color: #9ca3af; }
+  svg { display: block; width: 100%; height: auto; }
+  svg text { fill: #e6edf3; font-family: system-ui, sans-serif; }
+  .subtitle { fill: #9ca3af; font-size: 14px; }
+  .stage rect { fill: #12161c; stroke: #30363d; stroke-width: 1.5; }
+  .stage.active rect { fill: #15312e; stroke: #39d3bb; stroke-width: 2; }
+  .stage.feedback.active rect { fill: #32291a; stroke: #f2c14e; }
+  .rail { fill: none; stroke: #39434f; stroke-width: 2; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 16px; }
+  button { color: #e6edf3; background: #12161c; border: 1px solid #687480; border-radius: 6px; padding: 9px 18px; font: inherit; cursor: pointer; min-width: 90px; }
+  button:focus-visible, input:focus-visible { outline: 2px solid #39d3bb; outline-offset: 4px; }
+  label { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 220px; }
+  input { flex: 1; accent-color: #39d3bb; }
+  #caption { min-height: 3em; color: #e6edf3; }
+</style>
+<main>
+  <h1>Adaptive sampling: a batch becomes feedback</h1>
+  <p>Conceptual CPU pipeline · animation timing is illustrative, not measured runtime.</p>
+  <svg id="loop" viewBox="0 0 900 600" role="img" aria-labelledby="title description">
+    <title id="title">The adaptive coordinate sampling feedback loop</title>
+    <desc id="description">Six stages: build probabilities, draw indices, gather and embed, train, measure residuals, update priorities. Updated priorities return to the first stage for the next batch.</desc>
+    <path class="rail" d="M90 94 V494 H810 V94 H750"/>
+    <text x="90" y="35" text-anchor="middle" class="subtitle">batch ↓</text>
+    <text x="810" y="35" text-anchor="middle" class="subtitle">feedback ↑</text>
+    <g class="stage">
+      <rect x="150" y="62" width="600" height="64" rx="10"/>
+      <text x="175" y="89" font-size="19" font-weight="600">1 · Build sampling probabilities</text>
+      <text x="175" y="111" class="subtitle">Mix uniform exploration with per-pixel priorities</text>
+    </g>
+    <g class="stage">
+      <rect x="150" y="142" width="600" height="64" rx="10"/>
+      <text x="175" y="169" font-size="19" font-weight="600">2 · Draw original pixel indices</text>
+      <text x="175" y="191" class="subtitle">Sample with replacement; keep draw-time probabilities</text>
+    </g>
+    <g class="stage">
+      <rect x="150" y="222" width="600" height="64" rx="10"/>
+      <text x="175" y="249" font-size="19" font-weight="600">3 · Gather and embed</text>
+      <text x="175" y="271" class="subtitle">Keep positions and colors paired; apply Fourier features</text>
+    </g>
+    <g class="stage">
+      <rect x="150" y="302" width="600" height="64" rx="10"/>
+      <text x="175" y="329" font-size="19" font-weight="600">4 · Train the model</text>
+      <text x="175" y="351" class="subtitle">Forward prediction → loss → backward pass → SGD</text>
+    </g>
+    <g class="stage feedback">
+      <rect x="150" y="382" width="600" height="64" rx="10"/>
+      <text x="175" y="409" font-size="19" font-weight="600">5 · Measure per-point residuals</text>
+      <text x="175" y="431" class="subtitle">Reuse pre-update predictions: RGB error or velocity error</text>
+    </g>
+    <g class="stage feedback">
+      <rect x="150" y="462" width="600" height="64" rx="10"/>
+      <text x="175" y="489" font-size="19" font-weight="600">6 · Update original pixel priorities</text>
+      <text x="175" y="511" class="subtitle">Average duplicate residuals, then smooth each priority</text>
+    </g>
+    <path class="rail" d="M90 94 H150 M90 174 H150 M90 254 H150 M90 334 H150 M90 414 H150 M90 494 H150 M750 494 H810"/>
+    <circle id="marker" cx="90" cy="94" r="10" fill="#39d3bb"/>
+    <text x="450" y="568" text-anchor="middle" class="subtitle">Updated priorities influence the next batch · every pixel keeps a chance</text>
+  </svg>
+  <div class="controls">
+    <button id="play" type="button">Play</button>
+    <label for="scrub">Cycle <input id="scrub" type="range" min="0" max="1000" value="0"></label>
+  </div>
+  <p id="caption" aria-live="off"></p>
+</main>
+<script>
+  const stages = [...document.querySelectorAll('.stage')];
+  const marker = document.getElementById('marker');
+  const play = document.getElementById('play');
+  const scrub = document.getElementById('scrub');
+  const caption = document.getElementById('caption');
+  const captions = [
+    'Start with equal priorities; later cycles use feedback from previous batches.',
+    'Draw pixels randomly. Higher probability means more likely, not guaranteed.',
+    'Original indices preserve each pixel’s identity as the batch is assembled.',
+    'Training updates model parameters. Keep the predictions from this forward pass.',
+    'Compute channel-mean squared errors against the actual training targets.',
+    'Update observed pixels once each. Unobserved priorities stay unchanged.',
+    'Carry updated priorities into the next draw distribution.'
+  ];
+  let progress = 0;
+  let running = false;
+  let previous = null;
+  let frame = null;
+  // shortcut: illustrative phases, replace with recorded CPU snapshots for a data replay.
+  function stateAt(value) {
+    const phase = Math.min(value * 7, 6.999999);
+    if (phase < 6) return { stage: Math.floor(phase), x: 90, y: 94 + 80 * Math.min(phase, 5) };
+    const distance = (phase - 6) * 1180;
+    if (distance < 720) return { stage: 6, x: 90 + distance, y: 494 };
+    if (distance < 1120) return { stage: 6, x: 810, y: 494 - (distance - 720) };
+    return { stage: 6, x: 810 - (distance - 1120), y: 94 };
+  }
+  function draw() {
+    const state = stateAt(progress);
+    stages.forEach((element, index) => element.classList.toggle('active', index === (state.stage === 6 ? 0 : state.stage)));
+    marker.setAttribute('cx', state.x);
+    marker.setAttribute('cy', state.y);
+    marker.setAttribute('fill', state.stage < 4 ? '#39d3bb' : '#f2c14e');
+    caption.textContent = captions[state.stage];
+    scrub.value = Math.round(progress * 1000);
+    scrub.setAttribute('aria-valuetext', captions[state.stage]);
+  }
+  function tick(now) {
+    if (!running) return;
+    if (previous !== null) progress = (progress + (now - previous) / 12000) % 1;
+    previous = now;
+    draw();
+    frame = requestAnimationFrame(tick);
+  }
+  function setPlaying(next) {
+    if (next === running) return;
+    running = next;
+    cancelAnimationFrame(frame);
+    previous = null;
+    play.textContent = running ? 'Pause' : 'Play';
+    if (running) frame = requestAnimationFrame(tick);
+  }
+  play.addEventListener('click', () => setPlaying(!running));
+  scrub.addEventListener('input', () => {
+    setPlaying(false);
+    progress = Number(scrub.value) / 1000;
+    draw();
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setPlaying(false); });
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  reducedMotion.addEventListener('change', event => { if (event.matches) setPlaying(false); });
+  console.assert(stages.length === 6 && captions.length === 7, 'Every phase needs a stage or feedback caption');
+  for (let i = 0; i <= 1000; i++) {
+    const state = stateAt(i / 1000);
+    console.assert(state.stage >= 0 && state.stage < 7 && state.x >= 90 && state.x <= 810 && state.y >= 94 && state.y <= 494, 'Animation stays on its rails');
+  }
+  draw();
+  setPlaying(!reducedMotion.matches);
+</script>
+</html>
