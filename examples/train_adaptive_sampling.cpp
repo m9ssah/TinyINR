@@ -13,6 +13,7 @@
 
 #include "ops/fourier_embedding.h"
 #include "training/sampled_train_step.h"
+#include "training/cicfm.h"
 
 namespace {
 using Clock = std::chrono::steady_clock;

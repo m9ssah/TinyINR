@@ -8,6 +8,7 @@
 #include "model/mlp.h"
 #include "training/loss.h"
 #include "training/train_step.h"
+#include "training/cicfm.h"
 
 static void fillFeatures(Tensor &features) {
   for (int64_t i = 0; i < features.numel(); ++i) {
