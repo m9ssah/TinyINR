@@ -37,3 +37,13 @@ __global__ void mse_loss_kernel(const float *d_output, const float *d_target,
     atomicAdd(d_loss, partial[0]);
   }
 }
+void gpuMseLossAndGrad(const float *d_output, const float *d_target,
+                       float *d_loss, float *d_grad, int n) {
+  CUDA_CHECK(cudaMemset(d_loss, 0, sizeof(float)));
+  mse_loss_kernel<<<compute_grid_size(n), THREADS_PER_BLOCK>>>(
+      d_output, d_target, d_loss, n);
+  CUDA_CHECK_LAST_ERROR();
+  mse_grad_kernel<<<compute_grid_size(n), THREADS_PER_BLOCK>>>(
+      d_output, d_target, d_grad, n);
+  CUDA_CHECK_LAST_ERROR();
+}

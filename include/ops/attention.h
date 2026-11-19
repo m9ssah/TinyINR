@@ -4,11 +4,12 @@
 #include "tensor.h"
 
 /* shapes & math ref:
-  Q        = CoordinateFeatures @ W_q                    [B, N, D_model]
-  [K | V]  = Latents @ W_kv                              [B, L, 2 * D_model]
-  scores   = (Q @ K^T) / sqrt(d_k)                       [B, H, N, L]
-  attn     = softmax(scores, dim = -1)                   [B, H, N, L]
-  output   = attn @ V                                    [B, N, D_model]
+  Q        = features @ w_Q  + b_Q                 [B, N, D_model]
+  [K | V]  = latents  @ w_KV + b_KV                [B, L, 2 * D_model]
+  scores   = (Q @ K^T) / sqrt(d_k)                 [B, H, N, L]
+  attn     = softmax(scores, dim = -1)             [B, H, N, L]
+  heads    = attn @ V         (concat over H)      [B, N, D_model]
+  output   = heads @ w_O + b_O                     [B, N, D_model]
 
 D_model is split evenly across H heads: d_k = d_v = D_model / H.
 Output dim == D_model == input latent dim, by construction

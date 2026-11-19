@@ -10,7 +10,7 @@
 #include "kernel/mlp_backward.cuh"
 #include "kernel/mlp_forward.cuh"
 #include "kernel/mse.cuh"
-#include "kernel/sgd.cuh"
+#include "optim/sgd.cuh"
 
 static void fill_random(Tensor &t, std::mt19937 &rng) {
   std::uniform_real_distribution<float> dist(-1.0f, 1.0f);

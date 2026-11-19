@@ -1,4 +1,5 @@
 #include "kernel/cicfm.cuh"
+#include "kernel/cuda_utils.cuh"
 
 __global__ void cicfm_assembly_kernel(const float *d_features,
                                       const float *d_z0, const float *d_z1,
@@ -29,4 +30,14 @@ __global__ void cicfm_assembly_kernel(const float *d_features,
   }
 
   d_input[idx * in_dim + feature_dim + channels] = time;
+}
+
+void gpuCicfmAssembly(const float *d_features, const float *d_z0,
+                      const float *d_z1, const float *d_t, float *d_zt,
+                      float *d_target_velocity, float *d_input, int rows,
+                      int feature_dim, int channels) {
+  cicfm_assembly_kernel<<<compute_grid_size(rows), THREADS_PER_BLOCK>>>(
+      d_features, d_z0, d_z1, d_t, d_zt, d_target_velocity, d_input, rows,
+      feature_dim, channels);
+  CUDA_CHECK_LAST_ERROR();
 }

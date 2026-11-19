@@ -4,7 +4,6 @@
 
 #include "../model/mlp.h"
 #include "../tensor.h"
-#include "cicfm.h"
 #include "loss.h"
 #include "train_debug.h"
 

@@ -32,6 +32,12 @@ add_library(tinyinr_core STATIC
 )
 target_include_directories(tinyinr_core PUBLIC include)
 
+add_library(tinyinr_io STATIC src/io/ppm.cpp)
+target_include_directories(tinyinr_io PUBLIC include)
+
+add_executable(test_ppm tests/test_ppm.cpp)
+target_link_libraries(test_ppm PRIVATE tinyinr_io)
+
 add_executable(test_fourier_embedding_tensor
     tests/test_fourier_embedding_tensor.cpp
 )
@@ -41,6 +47,11 @@ add_executable(test_attention
     tests/test_attention.cpp
 )
 target_link_libraries(test_attention PRIVATE tinyinr_core)
+
+add_executable(test_attention_reference
+    tests/test_attention_reference.cpp
+)
+target_link_libraries(test_attention_reference PRIVATE tinyinr_core)
 
 add_executable(test_mlp_forward
     tests/test_mlp_forward.cpp
@@ -92,6 +103,7 @@ add_executable(test_sampled_train_step
 )
 target_link_libraries(test_sampled_train_step PRIVATE tinyinr_core)
 
+
 add_executable(train_adaptive_sampling examples/train_adaptive_sampling.cpp)
 target_link_libraries(train_adaptive_sampling PRIVATE tinyinr_core)
 target_compile_definitions(train_adaptive_sampling PRIVATE TINYINR_BUILD_TYPE="$<CONFIG>")
@@ -109,7 +121,9 @@ if(CMAKE_CUDA_COMPILER)
         src/kernels/mlp_backward.cu
         src/kernels/cicfm.cu
         src/kernels/train_step.cu
+        src/kernels/adamw.cu
     )
+    target_compile_options(kernels PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--generate-line-info>)
     target_include_directories(kernels PUBLIC src/kernels)
     target_link_libraries(kernels PUBLIC tinyinr_core)
 
@@ -156,6 +170,16 @@ if(CMAKE_CUDA_COMPILER)
     target_link_libraries(test_train_step_cuda PRIVATE kernels tinyinr_core)
     target_include_directories(test_train_step_cuda PRIVATE src/kernels)
 
+    add_executable(test_adamw_cuda
+        tests/test_adamw_cuda.cu
+    )
+    target_link_libraries(test_adamw_cuda PRIVATE kernels tinyinr_core)
+
+    add_executable(test_train_step_resident_cuda
+        tests/test_train_step_resident_cuda.cu
+    )
+    target_link_libraries(test_train_step_resident_cuda PRIVATE kernels tinyinr_core)
+
     # CUDA benchmark target:
     add_executable(bench_coordinate_embedding
         benchmarks/bench_coordinate_embedding.cu
@@ -174,4 +198,7 @@ if(CMAKE_CUDA_COMPILER)
     )
     target_link_libraries(bench_train_step PRIVATE kernels)
     target_include_directories(bench_train_step PRIVATE src/kernels)
+
+    add_executable(overfit_image examples/overfit_image.cu)
+    target_link_libraries(overfit_image PRIVATE kernels tinyinr_core tinyinr_io)
 endif()

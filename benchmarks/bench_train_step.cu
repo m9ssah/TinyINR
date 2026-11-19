@@ -8,8 +8,12 @@
 #include "training/loss.h"
 #include "training/train_step.h"
 
-#include "kernel/train_step.cuh"
 #include "bench_utils.cuh"
+#include "kernel/cicfm.cuh"
+#include "kernel/mlp_backward.cuh"
+#include "kernel/mlp_forward.cuh"
+#include "kernel/mse.cuh"
+#include "kernel/train_step.cuh"
 
 static const int B = 1;
 static const int D = 2;
@@ -21,6 +25,16 @@ static const float LR = 0.01f;
 static const int N_VALUES[] = {1024, 16384, 65536};
 static const int count_N = sizeof(N_VALUES) / sizeof(N_VALUES[0]);
 static const LossMode LOSS_MODES[] = {LossMode::MSE, LossMode::CICFM};
+
+// times one GPU stage in isolation - cold L2, events around the call, one sync
+template <typename Fn> static float time_gpu(L2Flusher &flusher, Fn fn) {
+  flusher.flush();
+  GpuTimer timer;
+  timer.start();
+  fn();
+  timer.stop();
+  return timer.elapsed_ms();
+}
 
 static float mean_abs(const Tensor &a, const Tensor &b) {
   double sum = 0.0;
@@ -80,17 +94,30 @@ int main() {
       std::vector<float> assembly, forward, loss_ms, backward, step;
       std::vector<float> losses;
       bool all_finite = true;
+      const float *loss_target = cicfm ? ctx.d_velocity : ctx.d_targets;
+      const int out_count = rows * CHANNELS;
       for (int trial = 0; trial < NUM_TRIALS; trial++) {
-        flusher.flush();
-        StageTimings tm;
-        float loss =
-            gpuTrainStep(ctx, mode, features, targets, cicfm ? &z0 : nullptr,
-                         cicfm ? &t : nullptr, LR, &tm);
-        assembly.push_back(tm.assembly_ms);
-        forward.push_back(tm.forward_ms);
-        loss_ms.push_back(tm.loss_ms);
-        backward.push_back(tm.backward_ms);
-        step.push_back(tm.step_ms);
+        float loss = 0.0f;
+        step.push_back(time_gpu(flusher, [&] {
+          loss = gpuTrainStep(ctx, mode, features, targets,
+                              cicfm ? &z0 : nullptr, cicfm ? &t : nullptr, LR);
+        }));
+
+        if (cicfm) {
+          assembly.push_back(time_gpu(flusher, [&] {
+            gpuCicfmAssembly(ctx.d_features, ctx.d_z0, ctx.d_targets, ctx.d_t,
+                             ctx.d_zt, ctx.d_velocity, ctx.cache.input, rows,
+                             ctx.feature_dim, ctx.channels);
+          }));
+        }
+        forward.push_back(
+            time_gpu(flusher, [&] { gpuMlpForward(ctx.mlp, ctx.cache); }));
+        loss_ms.push_back(time_gpu(flusher, [&] {
+          gpuMseLossAndGrad(ctx.cache.output, loss_target, ctx.d_loss,
+                            ctx.cache.grad_output, out_count);
+        }));
+        backward.push_back(
+            time_gpu(flusher, [&] { gpuMlpBackward(ctx.mlp, ctx.cache); }));
         losses.push_back(loss);
         all_finite = all_finite && std::isfinite(loss);
       }

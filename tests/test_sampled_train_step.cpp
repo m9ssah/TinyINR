@@ -6,6 +6,7 @@
 
 #include "ops/fourier_embedding.h"
 #include "training/sampled_train_step.h"
+#include "training/cicfm.h"
 
 static void assertNear(double actual, double expected, double tolerance = 1e-6) {
   assert(std::isfinite(actual) && std::isfinite(expected));

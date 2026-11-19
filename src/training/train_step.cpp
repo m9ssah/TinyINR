@@ -1,4 +1,5 @@
 #include "training/train_step.h"
+#include "training/cicfm.h"
 
 #include <cmath>
 #include <stdexcept>
